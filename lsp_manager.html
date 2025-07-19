@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAL Life Status ポイント管理アプリ - Enhanced</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <style>
+        :root {
+            --jal-red: #d32d3a;
+            --jal-blue: #003a70;
+            --jal-green: #008a5b;
+            --jal-gold: #c39f53;
+            --prediction-orange: #f59e0b;
+            --success-green: #10b981;
+            --warning-yellow: #f59e0b;
+            --danger-red: #ef4444;
+            
+            /* Light theme */
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-tertiary: #94a3b8;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--jal-red) 0%, var(--jal-blue) 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Top Controls */
+        .top-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .monthly-target {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .monthly-target input {
+            width: 80px;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Summary Section */
+        .summary-section {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .donut-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .donut-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .donut-center .percentage {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .donut-center .label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon svg {
+            width: 24px;
+            height: 24px;
+            color: white;
+        }
+
+        .stat-icon.total { background: var(--jal-red); }
+        .stat-icon.needed { background: var(--jal-green); }
+        .stat-icon.prediction { background: var(--prediction-orange); }
+        .stat-icon.monthly { background: var(--jal-blue); }
+
+        .stat-text h3 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-text p {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-text .unit {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-left: 0.25rem;
+        }
+
+        /* Achievements */
+        .achievements {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .achievement {
+            padding: 0.5rem 1rem;
+            background: var(--jal-gold);
+            color: #333;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        /* Scenario Analysis */
+        .scenario-analysis {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        [data-theme="dark"] .scenario-analysis {
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+        }
+
+        .scenario-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .scenario-result {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--jal-blue);
+            margin-top: 1rem;
+        }
+
+        /* Charts */
+        .chart-container {
+            height: 400px;
+            position: relative;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .chart-toggle {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chart-toggle.active {
+            background: var(--jal-blue);
+            color: white;
+            border-color: var(--jal-blue);
+        }
+
+        /* Form Improvements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-group input, .form-group select {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--jal-blue);
+            box-shadow: 0 0 0 3px rgba(0, 58, 112, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary {
+            background: var(--jal-red);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--jal-blue);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        /* Table Improvements */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        thead th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        thead th:hover {
+            background: var(--border-color);
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .action-btn.edit {
+            background: var(--jal-blue);
+            color: white;
+        }
+
+        .action-btn.delete {
+            background: var(--danger-red);
+            color: white;
+        }
+
+        .action-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Export */
+        .export-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .summary-section {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .top-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .chart-controls {
+                flex-direction: column;
+            }
+
+            .form-actions {
+                justify-content: stretch;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            background: var(--success-green);
+        }
+
+        .notification.error {
+            background: var(--danger-red);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* カテゴリバッジ */
+        .category-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+        }
+        
+        .category-koukuu {
+            background: rgba(0, 58, 112, 0.1);
+            color: var(--jal-blue);
+        }
+
+        .category-lifestyle {
+            background: rgba(0, 138, 91, 0.1);
+            color: var(--jal-green);
+        }
+
+        .category-etc {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--prediction-orange);
+        }
+
+        .points-cell {
+            font-weight: 600;
+            color: var(--jal-red);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="container">
+        <div class="header">
+            <h1>JAL Life Status ポイントトラッカー</h1>
+            <p>目標達成まで効率的にポイントを管理しましょう</p>
+        </div>
+
+        <div class="top-controls">
+            <div class="monthly-target">
+                <label>月間目標:</label>
+                <input type="number" id="monthly-target" value="50" min="1">
+                <span>LSP</span>
+            </div>
+            
+            <button class="theme-toggle" onclick="window.app.toggleTheme()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+                </svg>
+                テーマ切替
+            </button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+                    進捗サマリー
+                </h2>
+                <div class="summary-section">
+                    <div class="donut-container">
+                        <canvas id="progressDonut"></canvas>
+                        <div class="donut-center" id="donut-center"></div>
+                    </div>
+                    <div class="summary-stats">
+                        <div class="stat-item"><div class="stat-icon total"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg></div><div class="stat-text"><h3>現在のポイント</h3><p><span id="current-points">0</span><span class="unit">LSP</span></p></div></div>
+                        <div class="stat-item"><div class="stat-icon needed"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25a8.25 8.25 0 00-8.25 8.25c0 1.832.723 3.535 1.942 4.794l.254.254a.5.5 0 00.707 0l3.535-3.535a.5.5 0 000-.707l-2.546-2.546a.5.5 0 010-.707l3.536-3.535a.5.5 0 01.707 0l2.546 2.546a.5.5 0 00.707 0l3.535 3.535a.5.5 0 000 .707l-2.546 2.546a.5.5 0 01-.707 0l-3.535-3.535a.5.5 0 00-.707 0l-2.225 2.51.569 9.47z"/></svg></div><div class="stat-text"><h3>目標まであと</h3><p><span id="points-needed">1500</span><span class="unit">LSP</span></p></div></div>
+                        <div class="stat-item"><div class="stat-icon prediction"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M5.625 12h12.75"/></svg></div><div class="stat-text"><h3>達成予測</h3><p id="prediction-date">---</p></div></div>
+                        <div class="stat-item"><div class="stat-icon monthly"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.657m16.593 0v-.375c0-.621-.504-1.125-1.125-1.125H16.5v.375c0 .621.504 1.125 1.125 1.125h2.25Z"/></svg></div><div class="stat-text"><h3>今月の獲得</h3><p><span id="current-month-points">0</span><span class="unit">LSP</span></p></div></div>
+                    </div>
+                </div>
+                <div class="achievements" id="achievements"></div>
+            </div>
+
+            <div class="card">
+                <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/><path d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/></svg>サービス別分析</h2>
+                <div class="chart-container"><canvas id="serviceChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.75 17.25L12 21m0 0l-3.75-3.75M12 21V3"/></svg>シナリオ分析</h2>
+            <div class="scenario-analysis">
+                <div class="scenario-controls">
+                    <div class="filter-group"><label>月間追加ポイント:</label><input type="number" id="scenario-points" value="20" min="0" max="100"><span>LSP</span></div>
+                    <button class="btn btn-secondary" onclick="window.app.runScenario()">シミュレーション実行</button>
+                </div>
+                <div class="scenario-result" id="scenario-result" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>ポイント推移と予測</h2>
+            <div class="chart-controls">
+                <button class="chart-toggle active" onclick="window.app.toggleChart(event, 'prediction')">予測表示</button>
+                <button class="chart-toggle" onclick="window.app.toggleChart(event, 'monthly')">月別表示</button>
+            </div>
+            <div class="chart-container"><canvas id="mainChart"></canvas></div>
+        </div>
+
+        <div class="card">
+            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25"/></svg>データ管理</h2>
+            <div class="export-section">
+                <button class="btn btn-outline" onclick="window.app.exportData('csv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>CSV出力</button>
+                <button class="btn btn-outline" onclick="window.app.exportData('backup')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>バックアップ</button>
+                <input type="file" id="restore-file" accept=".json" style="display: none;" onchange="window.app.restoreData(event)">
+                <button class="btn btn-outline" onclick="document.getElementById('restore-file').click()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>復元</button>
+            </div>
+
+            <form id="data-form">
+                <div class="form-grid">
+                    <div class="form-group"><label>積算日</label><input type="date" id="form-date" required></div>
+                    <div class="form-group"><label>カテゴリー</label><select id="form-category" required><option value="航空">航空</option><option value="ライフスタイルサービス">ライフスタイルサービス</option><option value="その他">その他</option></select></div>
+                    <div class="form-group"><label>サービス</label><input type="text" id="form-service" placeholder="サービス名" required></div>
+                    <div class="form-group"><label>内容</label><input type="text" id="form-content" placeholder="詳細内容" required></div>
+                    <div class="form-group"><label>ポイント</label><input type="number" id="form-points" placeholder="ポイント数" min="1" required></div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="window.app.resetForm()">リセット</button>
+                    <button type="submit" class="btn btn-primary" id="submit-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>追加</button>
+                </div>
+                <input type="hidden" id="edit-id">
+            </form>
+        </div>
+
+        <div class="card">
+            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>獲得履歴</h2>
+            <div class="filters">
+                <div class="filter-group"><label>期間:</label><select id="period-filter"><option value="all">全期間</option><option value="year">今年</option><option value="month">今月</option><option value="quarter">今四半期</option></select></div>
+                <div class="filter-group"><label>カテゴリ:</label><select id="category-filter"><option value="all">全て</option><option value="航空">航空</option><option value="ライフスタイルサービス">ライフスタイルサービス</option><option value="その他">その他</option></select></div>
+                <div class="filter-group"><label>検索:</label><input type="text" id="search-filter" placeholder="サービス名や内容で検索"></div>
+            </div>
+            <div class="table-container"><table id="history-table">
+                <thead><tr><th onclick="window.app.sortTable(0)">積算日 ↕</th><th onclick="window.app.sortTable(1)">カテゴリー ↕</th><th onclick="window.app.sortTable(2)">サービス ↕</th><th onclick="window.app.sortTable(3)">内容 ↕</th><th onclick="window.app.sortTable(4)">ポイント ↕</th><th>操作</th></tr></thead>
+                <tbody id="history-body"></tbody>
+            </table></div>
+        </div>
+    </div>
+
+<script>
+// グローバルスコープに関数を公開するためのオブジェクト
+window.app = {};
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    let transactions = [];
+    let filteredTransactions = [];
+    const charts = {};
+    let sortOrder = { column: 0, direction: 'desc' };
+
+    const categoryClassMap = {
+        '航空': 'koukuu',
+        'ライフスタイルサービス': 'lifestyle',
+        'その他': 'etc'
+    };
+
+    const initialData = [
+        { id: 1, date: '2024-12-31', category: 'その他', service: '繰越', content: '2024年までの獲得分', points: 195 },
+        { id: 2, date: '2025-01-08', category: '航空', service: 'JAL国際線', content: 'JAL国際線利用', points: 30 },
+        { id: 3, date: '2025-01-14', category: '航空', service: 'JAL国際線', content: 'JAL国際線利用', points: 30 },
+        { id: 4, date: '2025-01-24', category: '航空', service: 'JAL国内線', content: 'JAL国内線利用', points: 10 },
+        { id: 5, date: '2025-02-12', category: 'ライフスタイルサービス', service: 'JALカード', content: 'JALカード利用', points: 5 },
+        { id: 6, date: '2025-02-13', category: 'ライフスタイルサービス', service: 'JAL Mall', content: 'JAL Mall利用', points: 7 },
+        { id: 7, date: '2025-02-17', category: 'その他', service: 'キャンペーン', content: '1周年 国内線ボーナス', points: 10 },
+        { id: 8, date: '2025-02-19', category: 'その他', service: 'キャンペーン', content: '1周年 国際線ボーナス', points: 60 },
+        { id: 9, date: '2025-02-27', category: 'その他', service: 'キャンペーン', content: '1周年 JAL Mallボーナス', points: 7 },
+        { id: 10, date: '2025-03-12', category: 'ライフスタイルサービス', service: 'JALカード', content: 'JALカード利用', points: 10 },
+        { id: 11, date: '2025-03-12', category: 'ライフスタイルサービス', service: 'JAL Mall', content: 'JAL Mall利用', points: 1 },
+        { id: 12, date: '2025-03-26', category: 'その他', service: 'キャンペーン', content: '1周年 JAL CARDボーナス', points: 15 },
+        { id: 13, date: '2025-04-08', category: 'ライフスタイルサービス', service: 'JAL Pay', content: 'JAL Pay 利用', points: 1 },
+        { id: 14, date: '2025-04-12', category: 'ライフスタイルサービス', service: 'JALカード', content: 'JALカード利用', points: 10 },
+        { id: 15, date: '2025-04-15', category: 'ライフスタイルサービス', service: 'JAL Wellness & Travel', content: 'JAL Wellness & Travel利用', points: 1 },
+        { id: 16, date: '2025-04-30', category: 'ライフスタイルサービス', service: 'JAL Pay両替', content: 'JAL Pay両替利用', points: 2 },
+        { id: 17, date: '2025-05-12', category: 'ライフスタイルサービス', service: 'JALカード', content: 'JALカード利用', points: 10 },
+        { id: 18, date: '2025-05-13', category: 'ライフスタイルサービス', service: 'JAL Pay', content: 'JAL Pay 利用', points: 1 },
+        { id: 19, date: '2025-05-15', category: 'ライフスタイルサービス', service: 'JAL Wellness & Travel', content: 'JAL Wellness & Travel利用', points: 1 },
+        { id: 20, date: '2025-05-20', category: 'ライフスタイルサービス', service: 'JAL Pay', content: 'JAL Pay 利用', points: 2 },
+        { id: 21, date: '2025-05-20', category: 'ライフスタイルサービス', service: 'JAL Pay両替', content: 'JAL Pay両替利用', points: 5 },
+        { id: 22, date: '2025-05-22', category: '航空', service: 'JAL国内線', content: 'JAL国内線利用', points: 5 },
+        { id: 23, date: '2025-05-23', category: '航空', service: 'JAL国内線', content: 'JAL国内線利用', points: 20 },
+        { id: 24, date: '2025-05-24', category: '航空', service: 'JAL国内線', content: 'JAL国内線利用', points: 5 },
+        { id: 25, date: '2025-05-26', category: 'ライフスタイルサービス', service: 'JAL Mall', content: 'JAL Mall利用', points: 3 },
+        { id: 26, date: '2025-05-30', category: '航空', service: 'JAL国内線', content: 'JAL国内線利用', points: 5 },
+        { id: 27, date: '2025-05-30', category: '航空', service: 'JAL国際線', content: 'JAL国際線利用', points: 35 },
+        { id: 28, date: '2025-06-08', category: '航空', service: 'JAL国際線', content: 'JAL国際線利用', points: 25 },
+        { id: 29, date: '2025-06-09', category: '航空', service: 'JAL国内線', content: 'JAL国内線利用', points: 5 },
+        { id: 30, date: '2025-06-10', category: 'ライフスタイルサービス', service: 'JAL Pay', content: 'JAL Pay 利用', points: 1 },
+        { id: 31, date: '2025-06-10', category: 'ライフスタイルサービス', service: 'JAL Pay両替', content: 'JAL Pay両替利用', points: 3 },
+        { id: 32, date: '2025-06-12', category: 'ライフスタイルサービス', service: 'JALカード', content: 'JALカード利用', points: 10 },
+        { id: 33, date: '2025-06-15', category: '航空', service: 'JAL国内線', content: 'JAL国内線利用', points: 10 },
+        { id: 34, date: '2025-06-15', category: 'ライフスタイルサービス', service: 'JAL Wellness & Travel', content: 'JAL Wellness & Travel利用', points: 1 },
+        { id: 35, date: '2025-06-16', category: 'ライフスタイルサービス', service: 'JAL Pay', content: 'JAL Pay 利用', points: 1 },
+        { id: 36, date: '2025-06-16', category: '航空', service: 'JAL国内線', content: 'JAL国内線利用', points: 10 },
+        { id: 37, date: '2025-06-17', category: 'ライフスタイルサービス', service: 'JAL Pay両替', content: 'JAL Pay両替利用', points: 1 },
+        { id: 38, date: '2025-06-23', category: 'ライフスタイルサービス', service: 'JALモバイル', content: 'JALモバイル', points: 1 },
+        { id: 39, date: '2025-07-01', category: 'その他', service: 'JAL Mall', content: 'JAL Mall', points: 2 },
+        { id: 40, date: '2025-07-08', category: 'ライフスタイルサービス', service: 'JAL Pay', content: 'JAL Pay 利用', points: 1 },
+        { id: 41, date: '2025-07-11', category: 'ライフスタイルサービス', service: 'JAL Mall', content: 'JAL Mall利用', points: 1 },
+    ];
+
+    const setupEventListeners = () => {
+        document.getElementById('data-form').addEventListener('submit', handleFormSubmit);
+        document.getElementById('period-filter').addEventListener('change', applyFilters);
+        document.getElementById('category-filter').addEventListener('change', applyFilters);
+        document.getElementById('search-filter').addEventListener('input', applyFilters);
+        document.getElementById('monthly-target').addEventListener('change', updateAll);
+    };
+
+    const loadData = () => {
+        const stored = localStorage.getItem('jalLspTransactions');
+        transactions = stored ? JSON.parse(stored) : [...initialData];
+        filteredTransactions = [...transactions];
+    };
+
+    const saveData = () => {
+        localStorage.setItem('jalLspTransactions', JSON.stringify(transactions));
+    };
+
+    const updateAll = () => {
+        applyFilters(); // This will call updateTable
+        updateSummary();
+        updateCharts();
+        updateAchievements();
+    };
+
+    const updateSummary = () => {
+        const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
+        const target = 1500;
+        const needed = Math.max(0, target - totalPoints);
+        const percentage = totalPoints > 0 ? Math.min(100, (totalPoints / target) * 100) : 0;
+        const now = new Date();
+        const currentMonthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+        const currentMonthPoints = transactions
+            .filter(t => t.date.startsWith(currentMonthKey))
+            .reduce((sum, t) => sum + t.points, 0);
+
+        document.getElementById('current-points').textContent = totalPoints;
+        document.getElementById('points-needed').textContent = needed;
+        document.getElementById('current-month-points').textContent = currentMonthPoints;
+
+        updateDonutChart(totalPoints, needed, percentage);
+        updatePrediction(totalPoints, target);
+    };
+
+    const updateDonutChart = (total, needed, percentage) => {
+        const ctx = document.getElementById('progressDonut').getContext('2d');
+        if (charts.donut) charts.donut.destroy();
+        charts.donut = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [total, Math.max(0, needed)],
+                    backgroundColor: ['#d32d3a', '#e2e8f0'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '70%',
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+            }
+        });
+        document.getElementById('donut-center').innerHTML = `<div class="percentage">${percentage.toFixed(1)}%</div><div class="label">達成率</div>`;
+    };
+    
+    const getMonthsOfData = (data) => {
+        if (data.length === 0) return 0;
+        const dates = data.map(t => new Date(t.date)).sort((a, b) => a - b);
+        const firstDate = dates[0];
+        const lastDate = dates[dates.length - 1];
+        return Math.max(1, (lastDate.getFullYear() - firstDate.getFullYear()) * 12 + lastDate.getMonth() - firstDate.getMonth() + 1);
+    };
+
+    const updatePrediction = (currentPoints, target) => {
+        if (currentPoints >= target) {
+            document.getElementById('prediction-date').textContent = '達成済み！';
+            return;
+        }
+        const lifestylePace = getCurrentMonthlyPace().lifestyle;
+        const flightPace = 10 / 3;
+        const totalPace = lifestylePace + flightPace;
+
+        if (totalPace > 0) {
+            const monthsToTarget = (target - currentPoints) / totalPace;
+            const targetDate = new Date();
+            targetDate.setMonth(targetDate.getMonth() + monthsToTarget);
+            document.getElementById('prediction-date').textContent = `${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月頃`;
+        } else {
+            document.getElementById('prediction-date').textContent = '予測不可';
+        }
+    };
+
+    const updateCharts = () => {
+        updateServiceChart();
+        const activeToggle = document.querySelector('.chart-toggle.active');
+        const type = activeToggle ? (activeToggle.textContent.includes('予測') ? 'prediction' : 'monthly') : 'prediction';
+        updateMainChart(type);
+    };
+
+    const updateServiceChart = () => {
+        const ctx = document.getElementById('serviceChart').getContext('2d');
+        if (charts.service) charts.service.destroy();
+        
+        const serviceData = {};
+        transactions.filter(t => t.service !== '繰越').forEach(t => {
+            serviceData[t.service] = (serviceData[t.service] || 0) + t.points;
+        });
+
+        const sortedServices = Object.entries(serviceData).sort(([, a], [, b]) => b - a);
+        const topServices = sortedServices.slice(0, 7);
+        const otherServices = sortedServices.slice(7);
+        
+        const chartData = {};
+        topServices.forEach(([service, points]) => { chartData[service] = points; });
+        if (otherServices.length > 0) {
+            chartData['その他サービス'] = otherServices.reduce((sum, [, points]) => sum + points, 0);
+        }
+
+        const labels = Object.keys(chartData);
+        const data = Object.values(chartData);
+        const colors = ['#003a70', '#008a5b', '#f59e0b', '#d32d3a', '#7ed321', '#bd10e0', '#4a90e2', '#50e3c2'];
+        const backgroundColors = labels.map((_, i) => colors[i % colors.length]);
+
+        charts.service = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderWidth: 2, 
+                    borderColor: getComputedStyle(document.body).getPropertyValue('--bg-secondary')
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { padding: 20, usePointStyle: true, font: { size: 12 } } 
+                    } 
+                }
+            }
+        });
+    };
+
+    const updateMainChart = (type = 'prediction', simulationData = null) => {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        if (charts.main) charts.main.destroy();
+
+        const datasets = [];
+        const sortedData = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+        let cumulative = 0;
+        const actualData = sortedData.map(t => ({ x: new Date(t.date).getTime(), y: (cumulative += t.points) }));
+        datasets.push({ label: '実績', data: actualData, borderColor: '#003a70', backgroundColor: 'rgba(0, 58, 112, 0.1)', borderWidth: 3, fill: true, tension: 0.1, pointRadius: 0 });
+        
+        if (type === 'prediction') {
+            const predictionData = [];
+            if (actualData.length > 0) {
+                const lastPoint = actualData[actualData.length - 1];
+                predictionData.push(lastPoint);
+                if (lastPoint.y < 1500) {
+                    const lifestylePace = getCurrentMonthlyPace().lifestyle;
+                    const flightPace = 10 / 3;
+                    const totalPace = lifestylePace + flightPace;
+                    if (totalPace > 0) {
+                        const monthsToTarget = (1500 - lastPoint.y) / totalPace;
+                        const targetDate = new Date(lastPoint.x);
+                        targetDate.setMonth(targetDate.getMonth() + monthsToTarget);
+                        predictionData.push({ x: targetDate.getTime(), y: 1500 });
+                    }
+                }
+            }
+            datasets.push({ label: '予測', data: predictionData, borderColor: '#d32d3a', borderDash: [5, 5], borderWidth: 2, fill: false, pointRadius: 0 });
+
+            if(simulationData) {
+                datasets.push({ label: 'シミュレーション', data: simulationData, borderColor: '#f59e0b', borderDash: [5, 5], borderWidth: 2, fill: false, pointRadius: 0 });
+            }
+
+            charts.main = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { type: 'time', time: { unit: 'month' } }, y: { beginAtZero: true } },
+                    plugins: { legend: { display: true, position: 'top' }, annotation: { annotations: { targetLine: { type: 'line', yMin: 1500, yMax: 1500, borderColor: '#d32d3a', borderWidth: 2, borderDash: [10, 5], label: { content: '目標: 1500 LSP', display: true, position: 'start' } } } } }
+                }
+            });
+        } else { // monthly
+            const monthlyData = {};
+            transactions.forEach(t => {
+                const monthKey = t.date.slice(0, 7);
+                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + t.points;
+            });
+            const sortedMonths = Object.keys(monthlyData).sort();
+            charts.main = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedMonths.map(m => m.replace('-', '/')),
+                    datasets: [{ label: '月間獲得ポイント', data: sortedMonths.map(m => monthlyData[m]), backgroundColor: '#003a70' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+            });
+        }
+    };
+
+    const updateAchievements = () => {
+        const achievements = [];
+        const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
+        [100, 250, 500, 750, 1000, 1250].forEach(m => { if (totalPoints >= m) achievements.push(`🎯 ${m} LSP達成`); });
+        const recentLifestyle = transactions.filter(t => new Date(t.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) && t.category === 'ライフスタイルサービス');
+        if (recentLifestyle.length >= 10) achievements.push('🔥 月間10回利用達成');
+        document.getElementById('achievements').innerHTML = achievements.slice(-3).map(a => `<div class="achievement">${a}</div>`).join('');
+    };
+
+    const applyFilters = () => {
+        const period = document.getElementById('period-filter').value;
+        const category = document.getElementById('category-filter').value;
+        const search = document.getElementById('search-filter').value.toLowerCase();
+        const now = new Date();
+
+        filteredTransactions = transactions.filter(t => {
+            const date = new Date(t.date);
+            let periodMatch = true;
+            if (period === 'year') periodMatch = date.getFullYear() === now.getFullYear();
+            else if (period === 'month') periodMatch = date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
+            else if (period === 'quarter') {
+                const currentQuarter = Math.floor(now.getMonth() / 3);
+                periodMatch = date.getFullYear() === now.getFullYear() && Math.floor(date.getMonth() / 3) === currentQuarter;
+            }
+            const categoryMatch = category === 'all' || t.category === category;
+            const searchMatch = search === '' || t.service.toLowerCase().includes(search) || t.content.toLowerCase().includes(search);
+            return periodMatch && categoryMatch && searchMatch;
+        });
+        updateTable();
+    };
+
+    const updateTable = () => {
+        const tbody = document.getElementById('history-body');
+        tbody.innerHTML = '';
+        const sorted = [...filteredTransactions].sort((a, b) => {
+            const aVal = getSortValue(a, sortOrder.column);
+            const bVal = getSortValue(b, sortOrder.column);
+            return sortOrder.direction === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+        });
+        sorted.forEach(t => {
+            const row = tbody.insertRow();
+            const categoryClass = categoryClassMap[t.category] || 'etc';
+            row.innerHTML = `
+                <td>${formatDate(t.date)}</td>
+                <td><span class="category-badge category-${categoryClass}">${t.category}</span></td>
+                <td>${t.service}</td>
+                <td>${t.content}</td>
+                <td class="points-cell">${t.points} LSP</td>
+                <td class="action-buttons">
+                    <button class="action-btn edit" onclick="window.app.startEdit(${t.id})" title="編集"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg></button>
+                    <button class="action-btn delete" onclick="window.app.deleteTransaction(${t.id})" title="削除"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+                </td>
+            `;
+        });
+    };
+
+    const getSortValue = (t, col) => [new Date(t.date), t.category, t.service, t.content, t.points][col];
+    const formatDate = (d) => new Date(d).toLocaleDateString('ja-JP');
+
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        const editId = parseInt(document.getElementById('edit-id').value);
+        const formData = {
+            date: document.getElementById('form-date').value,
+            category: document.getElementById('form-category').value,
+            service: document.getElementById('form-service').value,
+            content: document.getElementById('form-content').value,
+            points: parseInt(document.getElementById('form-points').value)
+        };
+        if (editId) {
+            const index = transactions.findIndex(t => t.id === editId);
+            if (index > -1) transactions[index] = { ...transactions[index], ...formData };
+            showNotification('データを更新しました', 'success');
+        } else {
+            formData.id = Date.now();
+            transactions.push(formData);
+            showNotification('データを追加しました', 'success');
+        }
+        saveData();
+        updateAll();
+        window.app.resetForm();
+    };
+    
+    const getCurrentMonthlyPace = () => {
+        const lifestyle = transactions.filter(t => t.category === 'ライフスタイルサービス');
+        const months = getMonthsOfData(lifestyle);
+        return { lifestyle: months > 0 ? lifestyle.reduce((s, t) => s + t.points, 0) / months : 0 };
+    };
+    
+    const showNotification = (message, type = 'success') => {
+        const el = document.createElement('div');
+        el.className = `notification ${type}`;
+        el.textContent = message;
+        document.body.appendChild(el);
+        setTimeout(() => document.body.removeChild(el), 3000);
+    };
+
+    // --- グローバル関数 ---
+    app.toggleTheme = () => {
+        const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('jal-lsp-theme', newTheme);
+        updateCharts(); // Re-render charts with new theme colors
+    };
+    app.runScenario = () => {
+        const additionalPoints = parseInt(document.getElementById('scenario-points').value);
+        const currentPoints = transactions.reduce((sum, t) => sum + t.points, 0);
+        const target = 1500;
+        const resultEl = document.getElementById('scenario-result');
+        const currentPace = getCurrentMonthlyPace().lifestyle + (10 / 3);
+
+        if (currentPoints >= target) {
+            resultEl.innerHTML = `<h4>🎉 既に目標達成済みです！</h4><p>現在のポイント: ${currentPoints} LSP</p>`;
+        } else {
+            const newPace = currentPace + additionalPoints;
+            const monthsToTarget = Math.ceil((target - currentPoints) / newPace);
+            const targetDate = new Date();
+            targetDate.setMonth(targetDate.getMonth() + monthsToTarget);
+            resultEl.innerHTML = `<h4>📊 シナリオ分析結果</h4>
+                <p><strong>現在のペース:</strong> 月間 ${currentPace.toFixed(1)} LSP</p>
+                <p><strong>改善後のペース:</strong> 月間 ${newPace.toFixed(1)} LSP</p>
+                <p><strong>達成時期:</strong> <strong>${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月頃</strong></p>`;
+        }
+        resultEl.style.display = 'block';
+
+        // ★修正点: シミュレーション結果をグラフに反映
+        const sortedData = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+        let cumulative = 0;
+        const actualData = sortedData.map(t => ({ x: new Date(t.date).getTime(), y: (cumulative += t.points) }));
+        
+        const simulationData = [];
+        if(actualData.length > 0) {
+            const lastPoint = actualData[actualData.length - 1];
+            simulationData.push(lastPoint);
+            if(lastPoint.y < 1500) {
+                const newPace = currentPace + additionalPoints;
+                if(newPace > 0) {
+                    const monthsToTarget = (1500 - lastPoint.y) / newPace;
+                    const simTargetDate = new Date(lastPoint.x);
+                    simTargetDate.setMonth(simTargetDate.getMonth() + monthsToTarget);
+                    simulationData.push({ x: simTargetDate.getTime(), y: 1500 });
+                }
+            }
+        }
+        updateMainChart('prediction', simulationData);
+    };
+    app.toggleChart = (event, type) => {
+        document.querySelectorAll('.chart-toggle').forEach(btn => btn.classList.remove('active'));
+        if (event && event.target) {
+            event.target.classList.add('active');
+        }
+        updateMainChart(type);
+    };
+    app.exportData = (type) => {
+        const content = type === 'csv' ? 
+            ['date,category,service,content,points'].concat(transactions.map(t => Object.values(t).slice(1).join(','))).join('\n') :
+            JSON.stringify({ version: '1.0', exportDate: new Date().toISOString(), data: transactions }, null, 2);
+        const mime = type === 'csv' ? 'text/csv' : 'application/json';
+        const filename = `jal_lsp_${type}.${type === 'csv' ? 'csv' : 'json'}`;
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        showNotification(`${type.toUpperCase()}ファイルを出力しました`, 'success');
+    };
+    app.restoreData = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const backup = JSON.parse(e.target.result);
+                if (backup.data && Array.isArray(backup.data) && confirm('現在のデータを復元データで置き換えますか？')) {
+                    transactions = backup.data;
+                    saveData();
+                    updateAll();
+                    showNotification('データを復元しました', 'success');
+                } else { throw new Error('Invalid file format'); }
+            } catch (err) { showNotification('ファイルの読み込みに失敗しました', 'error'); }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    };
+    app.startEdit = (id) => {
+        const t = transactions.find(t => t.id === id);
+        if (!t) return;
+        document.getElementById('edit-id').value = id;
+        document.getElementById('form-date').value = t.date;
+        document.getElementById('form-category').value = t.category;
+        document.getElementById('form-service').value = t.service;
+        document.getElementById('form-content').value = t.content;
+        document.getElementById('form-points').value = t.points;
+        const btn = document.getElementById('submit-btn');
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>更新`;
+        btn.className = 'btn btn-secondary';
+        document.getElementById('data-form').scrollIntoView({ behavior: 'smooth' });
+    };
+    app.deleteTransaction = (id) => {
+        if (!confirm('このデータを削除しますか？')) return;
+        transactions = transactions.filter(t => t.id !== id);
+        saveData();
+        updateAll();
+        showNotification('データを削除しました', 'success');
+    };
+    app.resetForm = () => {
+        document.getElementById('data-form').reset();
+        document.getElementById('edit-id').value = '';
+        document.getElementById('form-date').valueAsDate = new Date();
+        const btn = document.getElementById('submit-btn');
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>追加`;
+        btn.className = 'btn btn-primary';
+    };
+    app.sortTable = (column) => {
+        sortOrder.direction = (sortOrder.column === column && sortOrder.direction === 'asc') ? 'desc' : 'asc';
+        sortOrder.column = column;
+        updateTable();
+    };
+
+    // 初期化
+    const savedTheme = localStorage.getItem('jal-lsp-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    loadData();
+    setupEventListeners();
+    updateAll();
+    document.getElementById('form-date').valueAsDate = new Date();
+});
+</script>
+</body>
+</html>

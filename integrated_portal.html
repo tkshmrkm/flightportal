@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統合ツールポータル - Personal Finance & Travel Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --jal-gradient: linear-gradient(135deg, #d32d3a 0%, #8b0000 100%);
+            --finance-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --travel-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --security-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" patternUnits="userSpaceOnUse" width="100" height="100"><circle cx="50" cy="50" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.1;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .app-card:hover::before {
+            left: 100%;
+        }
+
+        .app-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .app-card.jal {
+            border-left: 5px solid #d32d3a;
+        }
+
+        .app-card.finance {
+            border-left: 5px solid #4facfe;
+        }
+
+        .app-card.travel {
+            border-left: 5px solid #fa709a;
+        }
+
+        .app-card.security {
+            border-left: 5px solid #667eea;
+        }
+
+        .feature-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0.25rem 0.25rem 0 0;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .status-available { background: #10b981; }
+        .status-beta { background: #f59e0b; }
+        .status-premium { background: #8b5cf6; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .quick-action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .recent-apps {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-left: 4px solid #10b981;
+            transform: translateX(400px);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .header-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .dark-mode {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        }
+
+        .dark-mode .app-card,
+        .dark-mode .stat-card,
+        .dark-mode .search-box,
+        .dark-mode .recent-apps {
+            background: rgba(31, 41, 55, 0.95);
+            color: #f9fafb;
+            border-color: rgba(75, 85, 99, 0.3);
+        }
+
+        .dark-mode .glass-morphism {
+            background: rgba(31, 41, 55, 0.25);
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .shortcut-btn {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .shortcut-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 2rem 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .shortcuts-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- ナビゲーションヘッダー -->
+    <nav class="header-nav">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">🏠</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-800">Personal Tools Portal</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">
+                        🌙
+                    </button>
+                    <button id="refresh-btn" class="quick-action-btn">
+                        🔄 更新
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- ヒーローセクション -->
+        <section class="hero-section rounded-3xl p-8 mb-8 text-white relative">
+            <div class="relative z-10">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                    🌟 Personal Finance & Travel Tools
+                </h1>
+                <p class="text-xl opacity-90 mb-6">
+                    JALマイル管理・為替換算・クレジットカード管理を一箇所で
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <button class="bg-white text-purple-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                        🚀 始める
+                    </button>
+                    <button class="border-2 border-white px-6 py-3 rounded-xl font-semibold hover:bg-white hover:text-purple-600 transition-colors">
+                        📖 使い方
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- クイック統計 -->
+        <section class="mb-8">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="text-3xl mb-2">🛫</div>
+                    <div class="text-2xl font-bold text-purple-600" id="total-apps">4</div>
+                    <div class="text-sm text-gray-600">利用可能ツール</div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-3xl mb-2">⚡</div>
+                    <div class="text-2xl font-bold text-blue-600" id="recent-usage">0</div>
+                    <div class="text-sm text-gray-600">今日の使用回数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-3xl mb-2">📊</div>
+                    <div class="text-2xl font-bold text-green-600" id="favorite-app">JAL FOP</div>
+                    <div class="text-sm text-gray-600">最頻用ツール</div>
+                </div>
+                <div class="stat-card">
+                    <div class="text-3xl mb-2">🔒</div>
+                    <div class="text-2xl font-bold text-purple-600">100%</div>
+                    <div class="text-sm text-gray-600">セキュア</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- メインアプリケーション -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">🎯 メインツール</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- JAL FOP計算ツール -->
+                <div class="app-card jal fade-in-up" onclick="openApp('fop_calculator')" data-app="fop_calculator">
+                    <div class="app-icon" style="background: linear-gradient(135deg, #d32d3a 0%, #8b0000 100%);">
+                        ✈️
+                    </div>
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">JAL FOP/マイル/LSP 計算ツール</h3>
+                        <span class="status-indicator status-available"></span>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        フライト区間や運賃情報から、JALマイル・FOP・LSPを正確に計算。カード別の比較も可能。
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="feature-tag">💰 FOP単価計算</span>
+                        <span class="feature-tag">💳 カード別比較</span>
+                        <span class="feature-tag">🎯 最適化提案</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">📅 最終使用: 今日</span>
+                        <button class="text-purple-600 hover:text-purple-800 font-semibold">
+                            開く →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- JAL LSP履歴管理 -->
+                <div class="app-card jal fade-in-up" onclick="openApp('lsp_manager')" data-app="lsp_manager" style="animation-delay: 0.1s;">
+                    <div class="app-icon" style="background: linear-gradient(135deg, #d32d3a 0%, #8b0000 100%);">
+                        📊
+                    </div>
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">JAL Life Status ポイント管理</h3>
+                        <span class="status-indicator status-available"></span>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        LSPの獲得履歴を詳細に管理。目標達成までの予測とシナリオ分析機能付き。
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="feature-tag">📈 進捗追跡</span>
+                        <span class="feature-tag">🔮 達成予測</span>
+                        <span class="feature-tag">📋 履歴管理</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">📅 最終使用: 昨日</span>
+                        <button class="text-purple-600 hover:text-purple-800 font-semibold">
+                            開く →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 為替コンバーター -->
+                <div class="app-card finance fade-in-up" onclick="openApp('currency_converter')" data-app="currency_converter" style="animation-delay: 0.2s;">
+                    <div class="app-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        💱
+                    </div>
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">為替コンバーター</h3>
+                        <span class="status-indicator status-available"></span>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        実効レート対応の高精度為替換算。手数料込みの実際の換金額・支払額を計算。
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="feature-tag">💼 実効レート</span>
+                        <span class="feature-tag">📅 履歴レート</span>
+                        <span class="feature-tag">💰 手数料込み</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">📅 最終使用: 3日前</span>
+                        <button class="text-purple-600 hover:text-purple-800 font-semibold">
+                            開く →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- カード管理 -->
+                <div class="app-card security fade-in-up" onclick="openApp('card_manager')" data-app="card_manager" style="animation-delay: 0.3s;">
+                    <div class="app-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        💳
+                    </div>
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">プレミアムカード管理</h3>
+                        <span class="status-indicator status-premium"></span>
+                    </div>
+                    <p class="text-gray-600 mb-4">
+                        銀行レベルのセキュリティでクレジットカード情報を管理。自動ロック・暗号化対応。
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="feature-tag">🔒 暗号化</span>
+                        <span class="feature-tag">⚡ 自動ロック</span>
+                        <span class="feature-tag">📋 一括管理</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">📅 最終使用: 1週間前</span>
+                        <button class="text-purple-600 hover:text-purple-800 font-semibold">
+                            開く →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- クイックアクション -->
+        <section class="mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- 最近のアプリ -->
+                <div class="recent-apps">
+                    <h3 class="text-lg font-bold mb-4 text-gray-800">🕒 最近使用したツール</h3>
+                    <div class="space-y-3" id="recent-apps-list">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center text-white text-sm">✈️</div>
+                                <span class="font-medium">JAL FOP計算</span>
+                            </div>
+                            <span class="text-sm text-gray-500">2時間前</span>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white text-sm">💱</div>
+                                <span class="font-medium">為替換算</span>
+                            </div>
+                            <span class="text-sm text-gray-500">昨日</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- クイックアクセス -->
+                <div class="recent-apps">
+                    <h3 class="text-lg font-bold mb-4 text-gray-800">⚡ クイックアクセス</h3>
+                    <div class="shortcuts-grid">
+                        <button class="shortcut-btn" onclick="quickAction('fop-calc')">
+                            <div class="text-2xl mb-2">✈️</div>
+                            <div class="text-sm font-medium">FOP計算</div>
+                        </button>
+                        <button class="shortcut-btn" onclick="quickAction('currency')">
+                            <div class="text-2xl mb-2">💱</div>
+                            <div class="text-sm font-medium">為替換算</div>
+                        </button>
+                        <button class="shortcut-btn" onclick="quickAction('lsp-check')">
+                            <div class="text-2xl mb-2">📊</div>
+                            <div class="text-sm font-medium">LSP確認</div>
+                        </button>
+                        <button class="shortcut-btn" onclick="quickAction('card-search')">
+                            <div class="text-2xl mb-2">🔍</div>
+                            <div class="text-sm font-medium">カード検索</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 検索・フィルター -->
+        <section class="mb-8">
+            <div class="search-box">
+                <h3 class="text-lg font-bold mb-4 text-gray-800">🔍 ツール検索</h3>
+                <div class="flex space-x-4">
+                    <input type="text" 
+                           id="search-input" 
+                           placeholder="ツール名、機能で検索..." 
+                           class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 transition-colors">
+                    <select id="category-filter" class="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+                        <option value="all">すべてのカテゴリ</option>
+                        <option value="jal">JAL関連</option>
+                        <option value="finance">金融・為替</option>
+                        <option value="security">セキュリティ</option>
+                    </select>
+                    <button class="quick-action-btn px-6">
+                        検索
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- フッター情報 -->
+        <section>
+            <div class="glass-morphism rounded-2xl p-6 text-center">
+                <h3 class="text-lg font-bold mb-4 text-gray-800">📋 システム情報</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                        <div class="font-semibold">バージョン</div>
+                        <div class="text-gray-600">v2.1.0</div>
+                    </div>
+                    <div>
+                        <div class="font-semibold">最終更新</div>
+                        <div class="text-gray-600">2025-01-13</div>
+                    </div>
+                    <div>
+                        <div class="font-semibold">ツール数</div>
+                        <div class="text-gray-600">4個</div>
+                    </div>
+                    <div>
+                        <div class="font-semibold">ステータス</div>
+                        <div class="text-green-600">🟢 正常</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 通知 -->
+    <div id="notification" class="notification">
+        <div class="flex items-center">
+            <span id="notification-icon" class="mr-3 text-xl">✅</span>
+            <span id="notification-text">アプリケーションを起動しました</span>
+        </div>
+    </div>
+
+    <script>
+        class PortalManager {
+            constructor() {
+                this.isDarkMode = false;
+                this.recentApps = this.loadRecentApps();
+                this.usageStats = this.loadUsageStats();
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.updateStats();
+                this.updateRecentApps();
+                this.loadTheme();
+                this.showWelcomeMessage();
+            }
+
+            bindEvents() {
+                // テーマ切り替え
+                document.getElementById('theme-toggle').addEventListener('click', () => {
+                    this.toggleTheme();
+                });
+
+                // 更新ボタン
+                document.getElementById('refresh-btn').addEventListener('click', () => {
+                    this.refreshPortal();
+                });
+
+                // 検索機能
+                document.getElementById('search-input').addEventListener('input', (e) => {
+                    this.filterApps(e.target.value);
+                });
+
+                document.getElementById('category-filter').addEventListener('change', (e) => {
+                    this.filterByCategory(e.target.value);
+                });
+
+                // アニメーション設定
+                this.setFadeInAnimations();
+            }
+
+            setFadeInAnimations() {
+                const cards = document.querySelectorAll('.fade-in-up');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.animationPlayState = 'running';
+                        }
+                    });
+                });
+
+                cards.forEach(card => {
+                    card.style.animationPlayState = 'paused';
+                    observer.observe(card);
+                });
+            }
+
+            toggleTheme() {
+                this.isDarkMode = !this.isDarkMode;
+                document.body.classList.toggle('dark-mode', this.isDarkMode);
+                document.getElementById('theme-toggle').textContent = this.isDarkMode ? '☀️' : '🌙';
+                localStorage.setItem('portal-theme', this.isDarkMode);
+            }
+
+            loadTheme() {
+                const savedTheme = localStorage.getItem('portal-theme');
+                if (savedTheme === 'true') {
+                    this.toggleTheme();
+                }
+            }
+
+            loadRecentApps() {
+                const stored = localStorage.getItem('portal-recent-apps');
+                return stored ? JSON.parse(stored) : [];
+            }
+
+            loadUsageStats() {
+                const stored = localStorage.getItem('portal-usage-stats');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            saveRecentApps() {
+                localStorage.setItem('portal-recent-apps', JSON.stringify(this.recentApps));
+            }
+
+            saveUsageStats() {
+                localStorage.setItem('portal-usage-stats', JSON.stringify(this.usageStats));
+            }
+
+            addToRecentApps(appId, appName) {
+                const existing = this.recentApps.findIndex(app => app.id === appId);
+                if (existing > -1) {
+                    this.recentApps.splice(existing, 1);
+                }
+                
+                this.recentApps.unshift({
+                    id: appId,
+                    name: appName,
+                    timestamp: new Date().toISOString(),
+                    icon: this.getAppIcon(appId)
+                });
+
+                if (this.recentApps.length > 5) {
+                    this.recentApps = this.recentApps.slice(0, 5);
+                }
+
+                this.saveRecentApps();
+                this.updateRecentApps();
+            }
+
+            getAppIcon(appId) {
+                const icons = {
+                    'fop_calculator': '✈️',
+                    'lsp_manager': '📊',
+                    'currency_converter': '💱',
+                    'card_manager': '💳'
+                };
+                return icons[appId] || '🔧';
+            }
+
+            updateUsageStats(appId) {
+                const today = new Date().toDateString();
+                if (!this.usageStats[today]) {
+                    this.usageStats[today] = {};
+                }
+                if (!this.usageStats[today][appId]) {
+                    this.usageStats[today][appId] = 0;
+                }
+                this.usageStats[today][appId]++;
+                this.saveUsageStats();
+                this.updateStats();
+            }
+
+            updateStats() {
+                const today = new Date().toDateString();
+                const todayUsage = this.usageStats[today] || {};
+                const totalToday = Object.values(todayUsage).reduce((sum, count) => sum + count, 0);
+                
+                document.getElementById('recent-usage').textContent = totalToday;
+                
+                // 最も使用されているアプリを計算
+                const allTimeStats = {};
+                Object.values(this.usageStats).forEach(dayStats => {
+                    Object.entries(dayStats).forEach(([appId, count]) => {
+                        allTimeStats[appId] = (allTimeStats[appId] || 0) + count;
+                    });
+                });
+                
+                const mostUsed = Object.entries(allTimeStats).sort(([,a], [,b]) => b - a)[0];
+                if (mostUsed) {
+                    const appNames = {
+                        'fop_calculator': 'JAL FOP',
+                        'lsp_manager': 'LSP管理',
+                        'currency_converter': '為替換算',
+                        'card_manager': 'カード管理'
+                    };
+                    document.getElementById('favorite-app').textContent = appNames[mostUsed[0]] || mostUsed[0];
+                }
+            }
+
+            updateRecentApps() {
+                const container = document.getElementById('recent-apps-list');
+                if (this.recentApps.length === 0) {
+                    container.innerHTML = '<div class="text-gray-500 text-center py-4">まだ使用履歴がありません</div>';
+                    return;
+                }
+
+                container.innerHTML = this.recentApps.map(app => {
+                    const timeAgo = this.getTimeAgo(new Date(app.timestamp));
+                    return `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                             onclick="portal.openApp('${app.id}')">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white text-sm">${app.icon}</div>
+                                <span class="font-medium">${app.name}</span>
+                            </div>
+                            <span class="text-sm text-gray-500">${timeAgo}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            getTimeAgo(date) {
+                const now = new Date();
+                const diff = now - date;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+
+                if (minutes < 60) return `${minutes}分前`;
+                if (hours < 24) return `${hours}時間前`;
+                return `${days}日前`;
+            }
+
+            filterApps(searchTerm) {
+                const cards = document.querySelectorAll('.app-card');
+                const term = searchTerm.toLowerCase();
+
+                cards.forEach(card => {
+                    const title = card.querySelector('h3').textContent.toLowerCase();
+                    const description = card.querySelector('p').textContent.toLowerCase();
+                    const features = Array.from(card.querySelectorAll('.feature-tag')).map(tag => tag.textContent.toLowerCase()).join(' ');
+
+                    const matches = title.includes(term) || description.includes(term) || features.includes(term);
+                    card.style.display = matches ? 'block' : 'none';
+                });
+            }
+
+            filterByCategory(category) {
+                const cards = document.querySelectorAll('.app-card');
+
+                cards.forEach(card => {
+                    if (category === 'all') {
+                        card.style.display = 'block';
+                    } else {
+                        const hasCategory = card.classList.contains(category);
+                        card.style.display = hasCategory ? 'block' : 'none';
+                    }
+                });
+            }
+
+            refreshPortal() {
+                this.showNotification('ポータルを更新しています...', 'info');
+                
+                // 統計を更新
+                this.updateStats();
+                this.updateRecentApps();
+                
+                // カードアニメーションを再実行
+                const cards = document.querySelectorAll('.app-card');
+                cards.forEach((card, index) => {
+                    card.style.animation = 'none';
+                    setTimeout(() => {
+                        card.style.animation = `fadeInUp 0.6s ease ${index * 0.1}s forwards`;
+                    }, 100);
+                });
+
+                setTimeout(() => {
+                    this.showNotification('ポータルを更新しました', 'success');
+                }, 1000);
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.getElementById('notification');
+                const icon = document.getElementById('notification-icon');
+                const text = document.getElementById('notification-text');
+
+                const icons = {
+                    'success': '✅',
+                    'error': '❌',
+                    'info': 'ℹ️',
+                    'warning': '⚠️'
+                };
+
+                icon.textContent = icons[type] || icons.info;
+                text.textContent = message;
+
+                notification.classList.add('show');
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            showWelcomeMessage() {
+                setTimeout(() => {
+                    this.showNotification('ポータルにようこそ！', 'success');
+                }, 1000);
+            }
+
+            openApp(appId) {
+                const appNames = {
+                    'fop_calculator': 'JAL FOP計算ツール',
+                    'lsp_manager': 'JAL LSP管理',
+                    'currency_converter': '為替コンバーター',
+                    'card_manager': 'プレミアムカード管理'
+                };
+
+                const appName = appNames[appId];
+                
+                // 使用履歴に追加
+                this.addToRecentApps(appId, appName);
+                this.updateUsageStats(appId);
+
+                // アプリ起動の通知
+                this.showNotification(`${appName}を起動します...`, 'info');
+
+                // 実際にはファイルを開く処理をここに実装
+                window.open(`${appId}.html`, '_blank');
+                
+                setTimeout(() => {
+                    this.showNotification(`${appName}を起動しました`, 'success');
+                }, 1000);
+            }
+        }
+
+        // グローバル関数
+        let portal;
+
+        function openApp(appId) {
+            portal.openApp(appId);
+        }
+
+        function quickAction(action) {
+            switch(action) {
+                case 'fop-calc':
+                    portal.openApp('fop_calculator');
+                    break;
+                case 'currency':
+                    portal.openApp('currency_converter');
+                    break;
+                case 'lsp-check':
+                    portal.openApp('lsp_manager');
+                    break;
+                case 'card-search':
+                    portal.openApp('card_manager');
+                    break;
+            }
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            portal = new PortalManager();
+        });
+
+        // キーボードショートカット
+        document.addEventListener('keydown', (e) => {
+            // Alt+数字でアプリ起動
+            if (e.altKey && !isNaN(e.key)) {
+                const appIds = ['fop_calculator', 'lsp_manager', 'currency_converter', 'card_manager'];
+                const index = parseInt(e.key) - 1;
+                if (index >= 0 && index < appIds.length) {
+                    portal.openApp(appIds[index]);
+                }
+            }
+            
+            // Ctrl+Shift+R でポータル更新
+            if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+                e.preventDefault();
+                portal.refreshPortal();
+            }
+        });
+    </script>
+</body>
+</html>

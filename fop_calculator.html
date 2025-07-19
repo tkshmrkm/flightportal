@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAL FOP/マイル/LSP 計算・比較ツール</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            background: linear-gradient(135deg, #dbeafe 0%, #fef2f2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 40px;
+            margin-bottom: 30px;
+            border-left: 8px solid #dc2626;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-left: 75px;
+        }
+
+        /* Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        /* Form Elements */
+        label {
+            display: block;
+            margin: 15px 0 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.95rem;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: white;
+        }
+
+        /* Segment Styles */
+        .segment {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .segment:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .segment-title {
+            font-weight: 700;
+            color: #475569;
+            font-size: 1.1rem;
+        }
+
+        .remove-segment {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-segment:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Route Selection */
+        .route-grid {
+            display: grid;
+            grid-template-columns: 2fr auto 2fr;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+
+        .arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 1.5rem;
+            padding-bottom: 12px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        /* Checkbox Styles */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(59, 130, 246, 0.05);
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-container:hover {
+            border-color: #3b82f6;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-calculate {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            width: 100%;
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+            margin: 30px 0;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(220, 38, 38, 0.4);
+        }
+
+        /* Results Styles */
+        .fop-summary {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .fop-summary h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fop-summary p {
+            font-size: 1.1rem;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fop-value {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #dc2626;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        .results-table th {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            color: white;
+            padding: 15px 12px;
+            font-weight: 700;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .results-table th:first-child {
+            text-align: left;
+            position: sticky;
+            left: 0;
+            z-index: 11;
+        }
+
+        .results-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            text-align: right;
+        }
+
+        .results-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+            background: white;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            border-right: 2px solid #e5e7eb;
+        }
+
+        .results-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .results-table tr:nth-child(even) td:first-child {
+            background: #f8fafc;
+        }
+
+        .results-table tr:hover {
+            background: #eff6ff;
+        }
+
+        .results-table tr:hover td:first-child {
+            background: #eff6ff;
+        }
+
+        .value-highlight {
+            font-weight: 700;
+            color: #059669;
+        }
+
+        /* Error Styles */
+        .error-message {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 2px solid #f87171;
+            border-radius: 12px;
+            padding: 15px;
+            color: #dc2626;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Notice */
+        .notice {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 2px solid #60a5fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .notice-icon {
+            color: #2563eb;
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        .notice-content {
+            color: #1e40af;
+        }
+
+        .notice-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .notice-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Icon Colors */
+        .icon-user { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .icon-plane { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .icon-payment { background: linear-gradient(135deg, #059669, #047857); }
+        .icon-trophy { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="container">
+        <div class="header fade-in">
+            <h1>
+                <div class="header-icon">
+                    <i class="fas fa-plane"></i>
+                </div>
+                JAL FOP/マイル/LSP 計算ツール
+            </h1>
+            <p>フライト区間や運賃、支払い情報を入力して、獲得できるマイル、FOP、LSPをカード別に比較します。</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Left Column - Input Forms -->
+            <div class="input-section">
+                <!-- User Status -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <div class="card-icon icon-user">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h2 class="card-title">ユーザー属性</h2>
+                    </div>
+                    <div>
+                        <label for="jmb-status">JMBステータス</label>
+                        <select id="jmb-status">
+                            <option value="none">ステータスなし</option>
+                            <option value="crystal">JMBクリスタル</option>
+                            <option value="sapphire">JMBサファイア</option>
+                            <option value="jgc">JALグローバルクラブ(JGC)</option>
+                            <option value="jgc_sapphire">JGCサファイア</option>
+                            <option value="jgc_premier">JGCプレミア</option>
+                            <option value="diamond">JMBダイヤモンド</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Flight Information -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <div class="card-icon icon-plane">
+                            <i class="fas fa-plane-departure"></i>
+                        </div>
+                        <h2 class="card-title">フライト情報</h2>
+                        <button class="btn btn-primary" id="add-segment">
+                            <i class="fas fa-plus"></i>
+                            区間追加
+                        </button>
+                    </div>
+                    <div id="segments-container">
+                        <!-- Segments will be added here -->
+                    </div>
+                </div>
+
+                <!-- Payment Information -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <div class="card-icon icon-payment">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <h2 class="card-title">支払い情報</h2>
+                    </div>
+                    <div>
+                        <label for="total-fare">航空券など支払い総額（円）</label>
+                        <input type="number" id="total-fare" value="0" placeholder="例: 50000">
+                    </div>
+                </div>
+
+                <!-- Calculate Button -->
+                <button class="btn btn-calculate" id="calculate-btn">
+                    <i class="fas fa-calculator"></i>
+                    計算＆比較
+                </button>
+            </div>
+
+            <!-- Right Column - Results -->
+            <div class="results-section">
+                <!-- Error Container -->
+                <div id="error-container"></div>
+                
+                <!-- FOP Results -->
+                <div id="fop-results" class="fop-summary" style="display: none;">
+                    <h3>
+                        <i class="fas fa-trophy"></i>
+                        獲得FOP・FOP単価
+                    </h3>
+                    <p>
+                        <span>合計獲得FOP:</span>
+                        <span id="total-fop-summary" class="fop-value">0</span>
+                    </p>
+                    <p>
+                        <span>FOP単価:</span>
+                        <span id="fop-cost-summary" class="fop-value">0.00 円/FOP</span>
+                    </p>
+                </div>
+
+                <!-- Notice -->
+                <div class="notice">
+                    <i class="fas fa-info-circle notice-icon"></i>
+                    <div class="notice-content">
+                        <div class="notice-title">ご注意</div>
+                        <div class="notice-text">
+                            このツールは提供された資料と一般的な情報に基づいて作成されたシミュレーターです。実際の獲得マイル・ポイント数とは異なる場合があります。最終的な値はJALの公式発表をご確認ください。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="card" id="results-table-card" style="display: none;">
+            <div class="card-header">
+                <div class="card-icon icon-payment">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h2 class="card-title">カード別 マイル・LSP比較</h2>
+            </div>
+            <div class="table-container" id="results-table-container">
+                <!-- Results table will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- データ定義 ---
+        const mileageData = {
+            "HND-CTS": 510, "HND-FUK": 567, "HND-OKA": 984, "HND-ITM": 280, "HND-KIX": 280, "HND-NGO": 193, "HND-AKJ": 576, "HND-HKD": 424, "HND-AOJ": 358, "HND-SDJ": 190, "HND-OKJ": 356, "HND-HIJ": 414, "HND-TAK": 354, "HND-KMJ": 568, "HND-KOJ": 601, "HND-KMI": 561, "HND-NGS": 610, "HND-OIT": 499, "HND-ASJ": 787, "HND-MMY": 1158, "HND-ISG": 1224,
+            "ITM-CTS": 666, "ITM-FUK": 287, "ITM-OKA": 739, "ITM-SDJ": 396, "ITM-AOJ": 523, "ITM-KOJ": 329, "ITM-KMI": 292, "ITM-NGS": 330, "ITM-OIT": 219, "ITM-ASJ": 541,
+            "CTS-FUK": 882, "CTS-NGO": 614, "CTS-SDJ": 335, "CTS-HNA": 507,
+            "FUK-OKA": 537, "FUK-NGO": 374, "FUK-SDJ": 665, "FUK-HNA": 724, "FUK-KMI": 131,
+            "NGO-OKA": 809, "NGO-SDJ": 322,
+            "OKA-SDJ": 1130, "OKA-ISG": 247, "OKA-MMY": 177, "OKA-KMI": 59,
+        };
+        
+        Object.keys(mileageData).forEach(key => {
+            const [dep, arr] = key.split('-');
+            const reversedKey = `${arr}-${dep}`;
+            if (!mileageData[reversedKey]) mileageData[reversedKey] = mileageData[key];
+        });
+
+        const airportNames = { HND: "東京 (HND)", CTS: "札幌 (CTS)", FUK: "福岡 (FUK)", OKA: "沖縄 (OKA)", ITM: "大阪 (ITM)", KIX: "大阪 (KIX)", NGO: "名古屋 (NGO)", AKJ: "旭川 (AKJ)", HKD: "函館 (HKD)", AOJ: "青森 (AOJ)", SDJ: "仙台 (SDJ)", OKJ: "岡山 (OKJ)", HIJ: "広島 (HIJ)", TAK: "高松 (TAK)", KMJ: "熊本 (KMJ)", KOJ: "鹿児島 (KOJ)", KMI: "宮崎 (KMI)", NGS: "長崎 (NGS)", OIT: "大分 (OIT)", ASJ: "奄美大島 (ASJ)", MMY: "宮古 (MMY)", ISG: "石垣 (ISG)", HNA: "花巻 (HNA)" };
+        const uniqueAirports = [...new Set(Object.keys(mileageData).flatMap(key => key.split('-')))].sort();
+
+        const fareTypes = {
+            "flex": { name: "フレックス, ビジネスフレックス (100%)", multiplier: 1.0, bonusFop: 400 }, "saber": { name: "セイバー, スペシャルセイバー (75%)", multiplier: 0.75, bonusFop: 200 }, "promo75": { name: "株主割引など (75%)", multiplier: 0.75, bonusFop: 0 }, "promo50": { name: "プロモーション, ツアー等 (50%)", multiplier: 0.5, bonusFop: 0 }, "promo0": { name: "マイル積算対象外運賃 (0%)", multiplier: 0.0, bonusFop: 0 }
+        };
+        
+        const cabinClasses = {
+            "economy": { name: "エコノミークラス", bonus: 0 }, "class_j": { name: "クラスJ", bonus: 0.10 }, "first": { name: "ファーストクラス", bonus: 0.50 }
+        };
+
+        const cardTypes = {
+            "none": { flightBonus: 0, addOnMileRate: 0 },
+            "normal": { flightBonus: 0.10, addOnMileRate: 0 },
+            "club-a": { flightBonus: 0.25, addOnMileRate: 0 },
+            "gold_vmjd": { flightBonus: 0.25, addOnMileRate: 0 },
+            "gold_amex": { flightBonus: 0.25, addOnMileRate: 1 },
+            "platinum": { flightBonus: 0.25, addOnMileRate: 2 }
+        };
+
+        const jmbStatuses = {
+            "none": { bonus: 0 }, "crystal": { bonus: 0.55 }, "sapphire": { bonus: 1.05 }, "jgc": { bonus: 0.35 }, "jgc_sapphire": { bonus: 1.05 }, "jgc_premier": { bonus: 1.30 }, "diamond": { bonus: 1.30 }
+        };
+
+        const comparisonScenarios = [
+            { name: "カードなし", cardKey: "none", smp: false },
+            { name: "普通カード", cardKey: "normal", smp: false },
+            { name: "普通カード + SMP", cardKey: "normal", smp: true },
+            { name: "CLUB-A", cardKey: "club-a", smp: false },
+            { name: "CLUB-A + SMP", cardKey: "club-a", smp: true },
+            { name: "CLUB-A ゴールド (V/M/J/D)", cardKey: "gold_vmjd", smp: true },
+            { name: "CLUB-A ゴールド (A)", cardKey: "gold_amex", smp: true },
+            { name: "プラチナ", cardKey: "platinum", smp: true }
+        ];
+
+        const segmentsContainer = document.getElementById('segments-container');
+        const addSegmentBtn = document.getElementById('add-segment');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const errorContainer = document.getElementById('error-container');
+        const tableContainer = document.getElementById('results-table-container');
+        const tableCard = document.getElementById('results-table-card');
+        const fopResults = document.getElementById('fop-results');
+        
+        let segmentCount = 0;
+
+        function createSegment() {
+            segmentCount++;
+            const segmentDiv = document.createElement('div');
+            segmentDiv.className = 'segment';
+            segmentDiv.id = `segment-${segmentCount}`;
+            
+            const airportOptionsHtml = uniqueAirports.map(code => `<option value="${code}">${airportNames[code] || code}</option>`).join('');
+            const fareOptionsHtml = Object.entries(fareTypes).map(([key, value]) => `<option value="${key}">${value.name}</option>`).join('');
+            const classOptionsHtml = Object.entries(cabinClasses).map(([key, value]) => `<option value="${key}">${value.name}</option>`).join('');
+
+            segmentDiv.innerHTML = `
+                <div class="segment-header">
+                    <div class="segment-title">
+                        <i class="fas fa-route"></i>
+                        区間 ${segmentCount}
+                    </div>
+                    <button class="remove-segment" onclick="removeSegment(${segmentCount})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="route-grid">
+                    <div>
+                        <label for="from-${segmentCount}">出発地 (From)</label>
+                        <select id="from-${segmentCount}" class="from-airport">${airportOptionsHtml}</select>
+                    </div>
+                    <div class="arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                    <div>
+                        <label for="to-${segmentCount}">目的地 (To)</label>
+                        <select id="to-${segmentCount}" class="to-airport">${airportOptionsHtml}</select>
+                    </div>
+                </div>
+                <div class="options-grid">
+                    <div>
+                        <label for="class-${segmentCount}">搭乗クラス:</label>
+                        <select id="class-${segmentCount}" class="class-select">${classOptionsHtml}</select>
+                    </div>
+                    <div>
+                        <label for="fare-${segmentCount}">運賃種別:</label>
+                        <select id="fare-${segmentCount}" class="fare-type-select">${fareOptionsHtml}</select>
+                    </div>
+                </div>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="round-trip-${segmentCount}" class="round-trip-checkbox">
+                    <label for="round-trip-${segmentCount}" class="checkbox-label">
+                        <i class="fas fa-exchange-alt"></i>
+                        往復
+                    </label>
+                </div>
+            `;
+            
+            segmentDiv.style.animation = 'fadeInUp 0.6s ease-out';
+            segmentsContainer.appendChild(segmentDiv);
+            
+            document.getElementById(`from-${segmentCount}`).value = 'ITM';
+            document.getElementById(`to-${segmentCount}`).value = 'HND';
+            document.getElementById(`class-${segmentCount}`).value = 'economy';
+            document.getElementById(`fare-${segmentCount}`).value = 'saber';
+        }
+
+        function removeSegment(id) {
+            const segment = document.getElementById(`segment-${id}`);
+            if (segment && segmentsContainer.children.length > 1) {
+                segment.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    segment.remove();
+                    updateSegmentNumbers();
+                }, 300);
+            }
+        }
+
+        function updateSegmentNumbers() {
+            const remainingSegments = segmentsContainer.getElementsByClassName('segment');
+            for(let i = 0; i < remainingSegments.length; i++){
+                const titleElement = remainingSegments[i].querySelector('.segment-title');
+                titleElement.innerHTML = `<i class="fas fa-route"></i> 区間 ${i + 1}`;
+            }
+        }
+
+        function displayError(message) {
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    ${message}
+                </div>
+            `;
+        }
+
+        function clearError() {
+            errorContainer.innerHTML = '';
+        }
+
+        function calculateAndCompare() {
+            clearError();
+            tableCard.style.display = 'none';
+            fopResults.style.display = 'none';
+            
+            let hasError = false;
+
+            const segments = segmentsContainer.getElementsByClassName('segment');
+            const statusKey = document.getElementById('jmb-status').value;
+            const statusInfo = jmbStatuses[statusKey];
+            const totalFare = parseFloat(document.getElementById('total-fare').value) || 0;
+
+            let baseFlightInfo = { flightMiles: 0, fop: 0, lsp: 0 };
+            for (let i = 0; i < segments.length; i++) {
+                const segment = segments[i];
+                const from = segment.querySelector('.from-airport').value;
+                const to = segment.querySelector('.to-airport').value;
+                const classKey = segment.querySelector('.class-select').value;
+                const fareTypeKey = segment.querySelector('.fare-type-select').value;
+                const isRoundTrip = segment.querySelector('.round-trip-checkbox').checked;
+                const tripMultiplier = isRoundTrip ? 2 : 1;
+                
+                const route = `${from}-${to}`;
+                const baseMiles = mileageData[route];
+                const fareInfo = fareTypes[fareTypeKey];
+                const classInfo = cabinClasses[classKey];
+
+                if (from === to) {
+                    displayError(`区間 ${i + 1}: 出発地と目的地が同じです。`);
+                    hasError = true; break;
+                }
+                if (baseMiles === undefined) {
+                    displayError(`区間 ${i + 1} (${route}): マイルデータが見つかりません。直行便がない可能性があります。`);
+                    hasError = true; break;
+                }
+
+                if (baseMiles > 0 && fareInfo.multiplier > 0) {
+                    const milesFromFare = baseMiles * fareInfo.multiplier;
+                    const milesFromClass = baseMiles * classInfo.bonus;
+                    baseFlightInfo.flightMiles += (milesFromFare + milesFromClass) * tripMultiplier;
+                    
+                    const fopConversionRate = 2.0;
+                    const segmentFop = (milesFromFare * fopConversionRate) + fareInfo.bonusFop;
+                    baseFlightInfo.fop += segmentFop * tripMultiplier;
+                    
+                    baseFlightInfo.lsp += 5 * tripMultiplier;
+                }
+            }
+
+            if (hasError) return;
+
+            // FOPサマリーの表示
+            const totalFop = baseFlightInfo.fop;
+            const fopCost = totalFop > 0 ? (totalFare / totalFop) : 0;
+            document.getElementById('total-fop-summary').textContent = Math.round(totalFop).toLocaleString();
+            document.getElementById('fop-cost-summary').textContent = fopCost > 0 ? fopCost.toPrecision(4) + ' 円/FOP' : "0.00 円/FOP";
+            
+            fopResults.style.display = 'block';
+            fopResults.classList.add('fade-in');
+
+            // 各カードシナリオでループして計算
+            const resultsData = [];
+            comparisonScenarios.forEach(scenario => {
+                const cardInfo = cardTypes[scenario.cardKey];
+                
+                const statusBonusMiles = baseFlightInfo.flightMiles * statusInfo.bonus;
+                const cardBonusMiles = baseFlightInfo.flightMiles * cardInfo.flightBonus;
+                const totalFlightMiles = baseFlightInfo.flightMiles + statusBonusMiles + cardBonusMiles;
+
+                let shoppingMilesTotal = 0;
+                let addOnMilesTotal = 0;
+                if(scenario.cardKey !== 'none' && totalFare > 0){
+                    const shoppingRate = scenario.smp ? 1.0 : 0.5;
+                    shoppingMilesTotal = Math.floor(totalFare / 100 * shoppingRate);
+                    if (cardInfo.addOnMileRate > 0) {
+                        addOnMilesTotal = Math.floor(totalFare / 100 * cardInfo.addOnMileRate);
+                    }
+                }
+                const totalPaymentMiles = shoppingMilesTotal + addOnMilesTotal;
+
+                let lspFromPayment = 0;
+                if (totalPaymentMiles > 0) {
+                    lspFromPayment = (totalPaymentMiles / 2000) * 5;
+                }
+                const totalLsp = baseFlightInfo.lsp + lspFromPayment;
+                
+                const totalMiles = totalFlightMiles + totalPaymentMiles;
+                
+                const lspCost = totalLsp > 0 ? (totalFare / totalLsp) : 0;
+
+                resultsData.push({
+                    name: scenario.name,
+                    flightMiles: Math.round(totalFlightMiles),
+                    paymentMiles: Math.round(totalPaymentMiles),
+                    totalMiles: Math.round(totalMiles),
+                    flightLsp: baseFlightInfo.lsp,
+                    paymentLsp: lspFromPayment,
+                    totalLsp: totalLsp,
+                    lspCost: lspCost
+                });
+            });
+
+            displayResultsTable(resultsData);
+        }
+
+        function displayResultsTable(data) {
+            let tableHTML = `
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">カード種別</th>
+                            <th colspan="3">マイル</th>
+                            <th colspan="3">LSP</th>
+                            <th rowspan="2">LSP単価</th>
+                        </tr>
+                        <tr>
+                            <th>フライト</th>
+                            <th>決済</th>
+                            <th>合計</th>
+                            <th>搭乗</th>
+                            <th>決済</th>
+                            <th>合計</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            data.forEach(result => {
+                tableHTML += `
+                    <tr>
+                        <td>${result.name}</td>
+                        <td>${result.flightMiles.toLocaleString()}</td>
+                        <td>${result.paymentMiles.toLocaleString()}</td>
+                        <td class="value-highlight">${result.totalMiles.toLocaleString()}</td>
+                        <td>${result.flightLsp.toLocaleString()}</td>
+                        <td>${result.paymentLsp.toFixed(2)}</td>
+                        <td class="value-highlight">${result.totalLsp.toFixed(2)}</td>
+                        <td>${result.lspCost > 0 ? result.lspCost.toPrecision(4) : "0.00"}</td>
+                    </tr>
+                `;
+            });
+            tableHTML += `</tbody></table>`;
+            tableContainer.innerHTML = tableHTML;
+            
+            tableCard.style.display = 'block';
+            tableCard.classList.add('fade-in');
+        }
+
+        // CSS for fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        addSegmentBtn.addEventListener('click', createSegment);
+        calculateBtn.addEventListener('click', calculateAndCompare);
+
+        // Initialize with one segment
+        createSegment();
+    </script>
+</body>
+</html>
