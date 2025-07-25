@@ -625,6 +625,28 @@
             }
         }
 
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
         .icon-user { background: linear-gradient(135deg, #f59e0b, #d97706); }
         .icon-plane { background: linear-gradient(135deg, #3b82f6, #2563eb); }
         .icon-payment { background: linear-gradient(135deg, #059669, #047857); }
@@ -677,7 +699,7 @@
             <!-- 入力セクション -->
             <div class="input-section">
                 <!-- Current Status -->
-                <div class="card fade-in">
+                    <div class="card fade-in">
                     <div class="card-header">
                         <div class="card-header-left">
                             <div class="card-icon icon-star">
@@ -685,6 +707,10 @@
                             </div>
                             <h2 class="card-title">現在の実績</h2>
                         </div>
+                        <button class="btn" style="background: linear-gradient(135deg, #6b7280, #4b5563); color: white; padding: 8px 15px; font-size: 0.8rem;" onclick="resetSavedData()" title="設定をリセット">
+                            <i class="fas fa-undo"></i>
+                            リセット
+                        </button>
                     </div>
                     <div class="input-grid">
                         <div>
@@ -919,7 +945,8 @@
                 <div class="notice-content">
                     <div class="notice-title">ご注意</div>
                     <div class="notice-text">
-                        このツールはJAL公式マイル積算表に基づいて作成されたシミュレーターです。実際の獲得マイル・ポイント数とは異なる場合があります。最終的な値はJALの公式発表をご確認ください。
+                        このツールはJAL公式マイル積算表に基づいて作成されたシミュレーターです。実際の獲得マイル・ポイント数とは異なる場合があります。最終的な値はJALの公式発表をご確認ください。<br>
+                        <strong>プライバシー:</strong> 入力された実績やカード情報はお使いのブラウザにのみ保存され、外部には送信されません。
                     </div>
                 </div>
             </div>
@@ -1152,6 +1179,105 @@
         var resultsSection = document.getElementById('results-section');
         
         var segmentCount = 0;
+
+        // ローカルストレージからデータを読み込み
+        function loadSavedData() {
+            try {
+                var savedData = localStorage.getItem('jalCalculatorData');
+                if (savedData) {
+                    var data = JSON.parse(savedData);
+                    
+                    // 現在の実績を復元
+                    if (data.currentLsp !== undefined) {
+                        document.getElementById('current-lsp').value = data.currentLsp;
+                    }
+                    if (data.currentFop !== undefined) {
+                        document.getElementById('current-fop').value = data.currentFop;
+                    }
+                    
+                    // 目標設定を復元
+                    if (data.lspTargetGoal) {
+                        document.getElementById('lsp-target-goal').value = data.lspTargetGoal;
+                    }
+                    if (data.fopTargetGoal) {
+                        document.getElementById('fop-target-goal').value = data.fopTargetGoal;
+                    }
+                    
+                    // JALカード設定を復元
+                    if (data.jalCard) {
+                        document.getElementById('jal-card').value = data.jalCard;
+                    }
+                    if (data.smpOption !== undefined) {
+                        document.getElementById('smp-option').checked = data.smpOption;
+                    }
+                    
+                    console.log('前回の設定を復元しました');
+                    return true;
+                }
+            } catch (error) {
+                console.error('データの読み込みに失敗しました:', error);
+            }
+            return false;
+        }
+
+        // ローカルストレージにデータを保存
+        function saveData() {
+            try {
+                var data = {
+                    currentLsp: parseInt(document.getElementById('current-lsp').value) || 0,
+                    currentFop: parseInt(document.getElementById('current-fop').value) || 0,
+                    lspTargetGoal: document.getElementById('lsp-target-goal').value,
+                    fopTargetGoal: document.getElementById('fop-target-goal').value,
+                    jalCard: document.getElementById('jal-card').value,
+                    smpOption: document.getElementById('smp-option').checked,
+                    lastUpdated: new Date().toISOString()
+                };
+                
+                localStorage.setItem('jalCalculatorData', JSON.stringify(data));
+                console.log('設定を保存しました');
+            } catch (error) {
+                console.error('データの保存に失敗しました:', error);
+            }
+        }
+
+        // データ保存のイベントリスナーを追加
+        function setupAutoSave() {
+            var elements = [
+                'current-lsp', 'current-fop', 'lsp-target-goal', 
+                'fop-target-goal', 'jal-card', 'smp-option'
+            ];
+            
+            for (var i = 0; i < elements.length; i++) {
+                var element = document.getElementById(elements[i]);
+                if (element) {
+                    element.addEventListener('change', function(e) {
+                        var elementId = e.target.id;
+                        if (elementId === 'current-lsp' || elementId === 'current-fop') {
+                            updateStatusDisplays();
+                        }
+                        saveData();
+                    });
+                    
+                    element.addEventListener('input', function(e) {
+                        var elementId = e.target.id;
+                        if (elementId === 'current-lsp' || elementId === 'current-fop') {
+                            updateStatusDisplays();
+                        }
+                        saveData();
+                    });
+                }
+            }
+        }
+
+        // 設定リセット機能
+        function resetSavedData() {
+            try {
+                localStorage.removeItem('jalCalculatorData');
+                location.reload(); // ページをリロードして初期状態に戻す
+            } catch (error) {
+                console.error('設定のリセットに失敗しました:', error);
+            }
+        }
 
         // 平均的な料金を距離に基づいて推定
         function getEstimatedFare(miles, isRoundTrip) {
@@ -1543,13 +1669,47 @@
 
         // 初期化
         window.addEventListener('load', function() {
-            updateStatusDisplays(); // 初期表示でもステータスを更新
-            createSegment();
-            updateTotalFare(); // 初期料金表示
+            // 保存されたデータを読み込み
+            var dataLoaded = loadSavedData();
             
-            // ステータス表示更新のイベントリスナー
-            document.getElementById('current-lsp').addEventListener('input', updateStatusDisplays);
-            document.getElementById('current-fop').addEventListener('input', updateStatusDisplays);
+            // ステータス表示を更新
+            updateStatusDisplays();
+            
+            // 自動保存を設定
+            setupAutoSave();
+            
+            // 初期区間を作成
+            createSegment();
+            updateTotalFare();
+            
+            // データが読み込まれた場合の通知
+            if (dataLoaded) {
+                setTimeout(function() {
+                    var notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: linear-gradient(135deg, #10b981, #059669);
+                        color: white;
+                        padding: 15px 20px;
+                        border-radius: 10px;
+                        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+                        z-index: 9999;
+                        font-weight: 600;
+                        animation: slideInRight 0.5s ease-out;
+                    `;
+                    notification.innerHTML = '<i class="fas fa-check-circle"></i> 前回の設定を復元しました';
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(function() {
+                        notification.style.animation = 'slideOutRight 0.5s ease-in';
+                        setTimeout(function() {
+                            document.body.removeChild(notification);
+                        }, 500);
+                    }, 3000);
+                }, 500);
+            }
         });
     </script>
 </body>
