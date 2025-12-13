@@ -808,15 +808,105 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('monthly-target').addEventListener('change', updateAll);
     };
 
-    const loadData = () => {
-        const stored = localStorage.getItem('jalLspTransactions');
-        transactions = stored ? JSON.parse(stored) : [...initialData];
+// ▼▼▼ ここから貼り付け ▼▼▼
+
+    // Cloudflare Workerの設定
+    const API_URL = "https://ancient-flower-7846.mrkn55.workers.dev";
+    const API_KEY = "takeshi_secret_2025"; 
+
+    // データの読み込み（クラウド優先 → 失敗ならローカル）
+    const loadData = async () => {
+        try {
+            // クラウドから取得
+            const response = await fetch(API_URL, {
+                method: 'GET',
+                headers: { 'X-Api-Key': API_KEY }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                // クラウドにデータがあればそれを採用
+                if (data && data.length > 0) {
+                    transactions = data;
+                    console.log('クラウドからデータを読み込みました');
+                } else {
+                    // クラウドが空ならローカルストレージを使用（初回など）
+                    console.log('クラウドは空です。ローカルデータを使います');
+                    loadFromLocal();
+                }
+            } else {
+                console.warn('クラウド接続エラー:', response.status);
+                loadFromLocal();
+            }
+        } catch (e) {
+            console.error('通信エラー:', e);
+            loadFromLocal();
+        }
         filteredTransactions = [...transactions];
+        updateAll();
     };
 
-    const saveData = () => {
-        localStorage.setItem('jalLspTransactions', JSON.stringify(transactions));
+    // ローカルストレージからの読み込み（予備用）
+    const loadFromLocal = () => {
+        const stored = localStorage.getItem('jalLspTransactions');
+        transactions = stored ? JSON.parse(stored) : [...initialData];
     };
+
+    // データの保存（クラウド ＋ ローカル両方に保存）
+    const saveData = async () => {
+        // 1. まずローカルに保存（念のため）
+        localStorage.setItem('jalLspTransactions', JSON.stringify(transactions));
+
+        // 2. クラウドに保存
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "X-Api-Key": API_KEY 
+                },
+                body: JSON.stringify(transactions)
+            });
+            
+            if (response.ok) {
+                console.log('クラウド保存完了');
+            } else {
+                console.warn('クラウド保存失敗');
+                showNotification('クラウドへの保存に失敗しました', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showNotification('通信エラー: クラウドに保存できませんでした', 'error');
+        }
+    };
+
+    // バックアップ出力（日付8桁入り：YYYYMMDD）
+    app.exportData = (type) => {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const dateStr = `${yyyy}${mm}${dd}`; // 例: 20251214
+
+        const content = type === 'csv' ? 
+            ['date,category,service,content,points'].concat(transactions.map(t => Object.values(t).slice(1).join(','))).join('\n') :
+            JSON.stringify({ version: '1.0', exportDate: new Date().toISOString(), data: transactions }, null, 2);
+        
+        const mime = type === 'csv' ? 'text/csv' : 'application/json';
+        // ファイル名に日付を入れる
+        const filename = `jal_lsp_${type}_${dateStr}.${type === 'csv' ? 'csv' : 'json'}`;
+        
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        showNotification(`${filename} を出力しました`, 'success');
+    };
+
+    // ▲▲▲ ここまで ▲▲▲
 
     const updateAll = () => {
         applyFilters(); // This will call updateTable
@@ -1158,21 +1248,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateMainChart(type);
     };
-    app.exportData = (type) => {
-        const content = type === 'csv' ? 
-            ['date,category,service,content,points'].concat(transactions.map(t => Object.values(t).slice(1).join(','))).join('\n') :
-            JSON.stringify({ version: '1.0', exportDate: new Date().toISOString(), data: transactions }, null, 2);
-        const mime = type === 'csv' ? 'text/csv' : 'application/json';
-        const filename = `jal_lsp_${type}.${type === 'csv' ? 'csv' : 'json'}`;
-        const blob = new Blob([content], { type: mime });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(url);
-        showNotification(`${type.toUpperCase()}ファイルを出力しました`, 'success');
-    };
+
     app.restoreData = (event) => {
         const file = event.target.files[0];
         if (!file) return;
