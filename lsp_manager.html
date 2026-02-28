@@ -22,7 +22,7 @@
             --success-green: #10b981;
             --warning-yellow: #f59e0b;
             --danger-red: #ef4444;
-            
+
             /* Light theme */
             --bg-primary: #f8fafc;
             --bg-secondary: #ffffff;
@@ -36,7 +36,7 @@
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
-        [data-theme="dark"] {
+        html[data-theme="dark"] {
             --bg-primary: #0f172a;
             --bg-secondary: #1e293b;
             --bg-tertiary: #334155;
@@ -80,12 +80,7 @@
         .header h1 {
             font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            line-height: 1.3;
         }
 
         /* Top Controls */
@@ -108,6 +103,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            color: var(--text-primary);
         }
 
         .theme-toggle:hover {
@@ -115,23 +111,36 @@
             box-shadow: var(--shadow-md);
         }
 
-        .monthly-target {
+        /* Next Milestone */
+        .next-milestone {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.75rem;
             background: var(--bg-secondary);
-            padding: 1rem;
+            padding: 0.75rem 1.25rem;
             border-radius: 12px;
             border: 1px solid var(--border-color);
+            font-size: 0.95rem;
+            color: var(--text-secondary);
         }
 
-        .monthly-target input {
-            width: 80px;
-            padding: 0.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+        .milestone-label {
+            font-weight: 500;
+        }
+
+        .milestone-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--jal-blue);
+        }
+
+        .milestone-sep {
+            color: var(--text-tertiary);
+        }
+
+        .milestone-remaining {
+            font-weight: 700;
+            color: var(--jal-red);
         }
 
         /* Cards */
@@ -325,7 +334,7 @@
             margin-bottom: 1.5rem;
         }
 
-        [data-theme="dark"] .scenario-analysis {
+        html[data-theme="dark"] .scenario-analysis {
             background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
         }
 
@@ -408,6 +417,41 @@
             outline: none;
             border-color: var(--jal-blue);
             box-shadow: 0 0 0 3px rgba(0, 58, 112, 0.1);
+        }
+
+        /* クイック選択 */
+        .form-quick-wrap {
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px dashed var(--border-color);
+        }
+        .form-quick-wrap select {
+            background: color-mix(in srgb, var(--jal-green) 8%, var(--bg-primary));
+            border-color: var(--jal-green);
+        }
+
+        /* カスタム入力（選択肢にない場合） */
+        .custom-input {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .custom-input:focus {
+            outline: none;
+            border-color: var(--jal-red);
+            box-shadow: 0 0 0 3px rgba(211, 45, 58, 0.1);
+        }
+
+        .custom-input.visible {
+            display: block;
         }
 
         .form-actions {
@@ -526,6 +570,214 @@
             height: 16px;
         }
 
+        /* 月別折り畳み */
+        tr.month-header td {
+            background: var(--bg-secondary);
+            cursor: pointer;
+            user-select: none;
+            padding: 0.45rem 1rem;
+            border-top: 2px solid var(--border-color);
+            font-size: 0.88rem;
+        }
+        tr.month-header:hover td { filter: brightness(0.96); }
+        .mh-icon { margin-right: 0.4rem; font-style: normal; display: inline-block; width: 1em; text-align: center; }
+        .mh-total { float: right; font-size: 0.8rem; color: var(--text-secondary); font-weight: normal; }
+        tr.row-hidden { display: none; }
+
+        /* ===== 新レイアウト ===== */
+
+        /* クイック追加バー */
+        .quick-add-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .qa-select {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.9rem;
+        }
+        .qa-date { width: 140px; font-size: 0.9rem; }
+        .qa-points { width: 80px; font-size: 0.9rem; text-align: right; }
+        .qa-btn { white-space: nowrap; }
+
+        /* 予測サマリーバー */
+        .prediction-summary-bar {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr 1.6fr 1fr;
+            gap: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+        .psb-item {
+            padding: 0.75rem 1rem;
+            border-right: 1px solid var(--border-color);
+            text-align: center;
+        }
+        .psb-item:last-child { border-right: none; }
+        .psb-label { font-size: 0.72rem; color: var(--text-tertiary); margin-bottom: 0.15rem; }
+        .psb-value { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+        .psb-remaining { color: var(--jal-red) !important; font-size: 1.3rem !important; }
+        .psb-prediction { color: var(--jal-blue); font-size: 0.95rem !important; }
+        .psb-note { font-size: 0.68rem; color: var(--text-tertiary); margin-top: 0.1rem; }
+
+        /* メイングラフ */
+        .main-chart-card .chart-container-large {
+            height: 340px;
+            position: relative;
+        }
+
+        /* アコーディオン */
+        .accordion-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+        .accordion-section > summary {
+            padding: 0.85rem 1.25rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            user-select: none;
+            color: var(--text-primary);
+        }
+        .accordion-section > summary::-webkit-details-marker { display: none; }
+        .accordion-section > summary::after {
+            content: '▶';
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            transition: transform 0.2s;
+        }
+        .accordion-section[open] > summary::after { transform: rotate(90deg); }
+        .accordion-section > summary:hover { background: color-mix(in srgb, var(--border-color) 40%, transparent); }
+        .accordion-body {
+            padding: 1rem 1.25rem 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* データ管理ボタン（クイック追加バー内） */
+        .data-tool-btns {
+            display: flex;
+            gap: 0.2rem;
+            border-left: 1px solid var(--border-color);
+            padding-left: 0.4rem;
+            margin-left: 0.1rem;
+        }
+        .data-tool-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.3rem 0.4rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            transition: all 0.15s;
+        }
+        .data-tool-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+        /* 分析セクション上部レイアウト */
+        .analysis-top-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.25rem;
+            align-items: start;
+        }
+        .category-donut-wrap { text-align: center; }
+        .analysis-section-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        #categoryDonut { max-width: 190px; max-height: 190px; }
+
+        /* シナリオ分析 */
+        .scenario-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            margin-top: 0.25rem;
+        }
+        .scenario-section-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.75rem; }
+        .scenario-base-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+        .scenario-month-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+        .scenario-month-row input[type="month"] { flex: 1; min-width: 130px; }
+        .scenario-month-row .scenario-pts-input { width: 72px; text-align: right; }
+        .scenario-month-row .scenario-label-input { flex: 1.2; font-size: 0.85rem; }
+        .scenario-remove-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.2rem 0.45rem;
+            cursor: pointer;
+            color: var(--text-tertiary);
+            font-size: 0.82rem;
+            line-height: 1;
+        }
+        .scenario-remove-btn:hover { background: var(--danger-red); color: white; border-color: var(--danger-red); }
+        .scenario-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+        .scenario-result-box {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+        .scenario-result-headline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .scenario-table-wrap { max-height: 220px; overflow-y: auto; border-radius: 6px; border: 1px solid var(--border-color); margin-top: 0.5rem; }
+        .scenario-table { width: 100%; font-size: 0.82rem; border-collapse: collapse; }
+        .scenario-table th { position: sticky; top: 0; background: var(--bg-secondary); padding: 0.3rem 0.5rem; text-align: left; font-weight: 600; font-size: 0.78rem; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); }
+        .scenario-table td { padding: 0.28rem 0.5rem; border-bottom: 1px solid var(--border-color); }
+        .scenario-table tr:last-child td { border-bottom: none; }
+        .scenario-table .row-target { background: rgba(211,45,58,0.07); font-weight: 700; }
+        .scenario-history-section { margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem; }
+        .scenario-history-title { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .scenario-history-table { width: 100%; font-size: 0.8rem; border-collapse: collapse; }
+        .scenario-history-table th, .scenario-history-table td { padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--border-color); text-align: left; }
+        .scenario-history-table th { color: var(--text-tertiary); font-weight: 500; }
+
+        /* モバイル分析レイアウト */
+        @media (max-width: 600px) {
+            .analysis-top-layout { grid-template-columns: 1fr; }
+            .category-donut-wrap { display: flex; align-items: center; gap: 1rem; text-align: left; }
+            #categoryDonut { max-width: 140px; max-height: 140px; }
+            .data-tool-btns { display: none; } /* モバイルでは分析セクション内で代替 */
+        }
+
         /* Export */
         .export-section {
             display: flex;
@@ -566,6 +818,33 @@
             .btn {
                 justify-content: center;
             }
+
+            /* ヘッダー */
+            .header { padding: 1rem; margin-bottom: 0.75rem; }
+            .header h1 { font-size: 1.8rem; }
+
+            /* クイック追加バー：2行に折り返し */
+            .quick-add-bar { flex-wrap: wrap; padding: 0.6rem 0.75rem; }
+            .qa-select { flex: 1 1 100%; }   /* 1行目：全幅 */
+            .qa-date { flex: 1; width: auto; min-width: 130px; }  /* 2行目 */
+            .qa-points { width: 70px; }
+
+            /* 予測サマリーバー：4列→2列×2行 */
+            .prediction-summary-bar {
+                grid-template-columns: 1fr 1fr;
+            }
+            .psb-item:nth-child(1) { border-bottom: 1px solid var(--border-color); }
+            .psb-item:nth-child(2) { border-right: none; border-bottom: 1px solid var(--border-color); }
+            .psb-item:nth-child(3) { border-right: 1px solid var(--border-color); }
+            .psb-remaining { font-size: 1.1rem !important; }
+            .psb-prediction { font-size: 0.85rem !important; }
+            .psb-note { font-size: 0.65rem; }
+
+            /* グラフ高さを縮小 */
+            .main-chart-card .chart-container-large { height: 260px; }
+
+            /* 手動フォーム */
+            .form-grid { grid-template-columns: 1fr 1fr; }
         }
 
         /* Notifications */
@@ -589,6 +868,11 @@
             background: var(--danger-red);
         }
 
+        .notification.warning {
+            background: var(--warning-yellow);
+            color: #333;
+        }
+
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -599,7 +883,7 @@
                 opacity: 1;
             }
         }
-        
+
         /* カテゴリバッジ */
         .category-badge {
             padding: 0.25rem 0.75rem;
@@ -609,7 +893,7 @@
             text-align: center;
             display: inline-block;
         }
-        
+
         .category-koukuu {
             background: rgba(0, 58, 112, 0.1);
             color: var(--jal-blue);
@@ -629,132 +913,346 @@
             font-weight: 600;
             color: var(--jal-red);
         }
+
+        /* 予測注釈 */
+        .prediction-note {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+
+        /* ===== 分析カード ===== */
+        .analysis-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .analysis-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+        }
+
+        .analysis-stat {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .analysis-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .analysis-stat-label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+        }
+
+        .analysis-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .analysis-stat-value span {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .analysis-stat-note {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-top: 0.3rem;
+        }
+
+        .analysis-section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .analysis-rank-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .analysis-rank-item {
+            display: grid;
+            grid-template-columns: 28px 1fr auto;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .rank-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .rank-1 { background: #c39f53; }
+        .rank-2 { background: #94a3b8; }
+        .rank-3 { background: #c97c55; }
+
+        .rank-service { font-size: 0.9rem; font-weight: 500; }
+        .rank-points { font-size: 0.9rem; font-weight: 700; color: var(--jal-red); white-space: nowrap; }
+
+        .rank-bar-wrap {
+            grid-column: 1 / -1;
+            background: var(--border-color);
+            border-radius: 4px;
+            height: 5px;
+            overflow: hidden;
+            margin-top: -0.4rem;
+        }
+
+        .rank-bar {
+            height: 100%;
+            background: var(--jal-blue);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .analysis-unused {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .unused-badge {
+            padding: 0.35rem 0.85rem;
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--prediction-orange);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .analysis-two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .analysis-two-col { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
-<body data-theme="light">
+<body>
     <div class="container">
         <div class="header">
-            <h1>JAL Life Status ポイントトラッカー</h1>
-            <p>目標達成まで効率的にポイントを管理しましょう</p>
+            <h1>JAL Life Status<br>ポイントトラッカー</h1>
         </div>
 
-        <div class="top-controls">
-            <div class="monthly-target">
-                <label>月間目標:</label>
-                <input type="number" id="monthly-target" value="50" min="1">
-                <span>LSP</span>
-            </div>
-            
-            <button class="theme-toggle" onclick="window.app.toggleTheme()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
-                </svg>
-                テーマ切替
+        <!-- ① クイック追加バー -->
+        <div class="quick-add-bar">
+            <select id="form-quick-select" class="qa-select">
+                <option value="">─ 追加するサービスを選択 ─</option>
+            </select>
+            <input type="date" id="qa-date" class="qa-date">
+            <input type="number" id="qa-points" class="qa-points" placeholder="LSP" min="1">
+            <button class="btn btn-primary qa-btn" onclick="window.app.quickAdd()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>追加
             </button>
-        </div>
-
-        <div class="dashboard-grid">
-            <div class="card">
-                <h2>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
-                    進捗サマリー
-                </h2>
-                <div class="summary-section">
-                    <div class="donut-container">
-                        <canvas id="progressDonut"></canvas>
-                        <div class="donut-center" id="donut-center"></div>
-                    </div>
-                    <div class="summary-stats">
-                        <div class="stat-item"><div class="stat-icon total"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg></div><div class="stat-text"><h3>現在のポイント</h3><p><span id="current-points">0</span><span class="unit">LSP</span></p></div></div>
-                        <div class="stat-item"><div class="stat-icon needed"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25a8.25 8.25 0 00-8.25 8.25c0 1.832.723 3.535 1.942 4.794l.254.254a.5.5 0 00.707 0l3.535-3.535a.5.5 0 000-.707l-2.546-2.546a.5.5 0 010-.707l3.536-3.535a.5.5 0 01.707 0l2.546 2.546a.5.5 0 00.707 0l3.535 3.535a.5.5 0 000 .707l-2.546 2.546a.5.5 0 01-.707 0l-3.535-3.535a.5.5 0 00-.707 0l-2.225 2.51.569 9.47z"/></svg></div><div class="stat-text"><h3>目標まであと</h3><p><span id="points-needed">1500</span><span class="unit">LSP</span></p></div></div>
-                        <div class="stat-item"><div class="stat-icon prediction"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18M5.625 12h12.75"/></svg></div><div class="stat-text"><h3>達成予測</h3><p id="prediction-date">---</p></div></div>
-                        <div class="stat-item"><div class="stat-icon monthly"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.657m16.593 0v-.375c0-.621-.504-1.125-1.125-1.125H16.5v.375c0 .621.504 1.125 1.125 1.125h2.25Z"/></svg></div><div class="stat-text"><h3>今月の獲得</h3><p><span id="current-month-points">0</span><span class="unit">LSP</span></p></div></div>
-                    </div>
-                </div>
-                <div class="achievements" id="achievements"></div>
-            </div>
-
-            <div class="card">
-                <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"/><path d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"/></svg>サービス別分析</h2>
-                <div class="chart-container"><canvas id="serviceChart"></canvas></div>
+            <button class="theme-toggle" onclick="window.app.toggleTheme()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/></svg>
+            </button>
+            <div class="data-tool-btns">
+                <button class="data-tool-btn" title="CSV出力" onclick="window.app.exportData('csv')"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg></button>
+                <button class="data-tool-btn" title="バックアップ" onclick="window.app.exportData('backup')"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg></button>
+                <button class="data-tool-btn" title="復元" onclick="document.getElementById('restore-file').click()"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg></button>
+                <input type="file" id="restore-file" accept=".json" style="display:none;" onchange="window.app.restoreData(event)">
             </div>
         </div>
 
-        <div class="card">
-            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M15.75 17.25L12 21m0 0l-3.75-3.75M12 21V3"/></svg>シナリオ分析</h2>
-            <div class="scenario-analysis">
-                <div class="scenario-controls">
-                    <div class="filter-group"><label>月間追加ポイント:</label><input type="number" id="scenario-points" value="20" min="0" max="100"><span>LSP</span></div>
-                    <button class="btn btn-secondary" onclick="window.app.runScenario()">シミュレーション実行</button>
-                </div>
-                <div class="scenario-result" id="scenario-result" style="display: none;"></div>
+        <!-- ② 予測サマリーバー -->
+        <div class="prediction-summary-bar">
+            <div class="psb-item">
+                <div class="psb-label">累計ポイント</div>
+                <div class="psb-value"><span id="current-points">0</span> LSP</div>
+            </div>
+            <div class="psb-item">
+                <div class="psb-label">次の目標 <span id="next-milestone-value">1,500</span> LSP まであと</div>
+                <div class="psb-value psb-remaining"><span id="next-milestone-remaining">---</span> LSP</div>
+            </div>
+            <div class="psb-item">
+                <div class="psb-label">達成予測</div>
+                <div class="psb-value psb-prediction" id="prediction-date">---</div>
+                <div class="psb-note" id="prediction-note"></div>
+            </div>
+            <div class="psb-item">
+                <div class="psb-label">今月の獲得</div>
+                <div class="psb-value"><span id="current-month-points">0</span> LSP</div>
             </div>
         </div>
 
-        <div class="card">
-            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>ポイント推移と予測</h2>
+        <!-- ③ メイングラフ（ポイント推移＋予測） -->
+        <div class="card main-chart-card">
             <div class="chart-controls">
                 <button class="chart-toggle active" onclick="window.app.toggleChart(event, 'prediction')">予測表示</button>
                 <button class="chart-toggle" onclick="window.app.toggleChart(event, 'monthly')">月別表示</button>
             </div>
-            <div class="chart-container"><canvas id="mainChart"></canvas></div>
+            <div class="chart-container-large"><canvas id="mainChart"></canvas></div>
         </div>
 
-        <div class="card">
-            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4.5h14.25M3 9h9.75M3 13.5h9.75m4.5-4.5v12m0 0l-3.75-3.75M17.25 21L21 17.25"/></svg>データ管理</h2>
-            <div class="export-section">
-                <button class="btn btn-outline" onclick="window.app.exportData('csv')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>CSV出力</button>
-                <button class="btn btn-outline" onclick="window.app.exportData('backup')"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>バックアップ</button>
-                <input type="file" id="restore-file" accept=".json" style="display: none;" onchange="window.app.restoreData(event)">
-                <button class="btn btn-outline" onclick="document.getElementById('restore-file').click()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>復元</button>
+        <!-- ④ 手動入力（折り畳み） -->
+        <details class="accordion-section" id="section-manual">
+            <summary>✏️ 手動入力・編集</summary>
+            <div class="accordion-body">
+                <form id="data-form">
+                    <div class="form-grid">
+                        <div class="form-group"><label>積算日</label><input type="date" id="form-date" required></div>
+                        <div class="form-group">
+                            <label>カテゴリー</label>
+                            <select id="form-category" required>
+                                <option value="航空">航空</option>
+                                <option value="ライフスタイルサービス">ライフスタイルサービス</option>
+                                <option value="その他">その他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>サービス</label>
+                            <select id="form-service-select"></select>
+                            <input type="text" id="form-service-text" class="custom-input" placeholder="サービス名を入力">
+                        </div>
+                        <div class="form-group">
+                            <label>内容</label>
+                            <input type="text" id="form-content-text" placeholder="内容を入力">
+                        </div>
+                        <div class="form-group"><label>ポイント</label><input type="number" id="form-points" placeholder="ポイント数" min="1" required></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="window.app.resetForm()">リセット</button>
+                        <button type="submit" class="btn btn-primary" id="submit-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>追加</button>
+                    </div>
+                    <input type="hidden" id="edit-id">
+                </form>
             </div>
+        </details>
 
-            <form id="data-form">
-                <div class="form-grid">
-                    <div class="form-group"><label>積算日</label><input type="date" id="form-date" required></div>
-                    <div class="form-group"><label>カテゴリー</label><select id="form-category" required><option value="航空">航空</option><option value="ライフスタイルサービス">ライフスタイルサービス</option><option value="その他">その他</option></select></div>
-                    <div class="form-group"><label>サービス</label><input type="text" id="form-service" placeholder="サービス名" required></div>
-                    <div class="form-group"><label>内容</label><input type="text" id="form-content" placeholder="詳細内容" required></div>
-                    <div class="form-group"><label>ポイント</label><input type="number" id="form-points" placeholder="ポイント数" min="1" required></div>
+        <!-- ⑤ 獲得履歴（折り畳み） -->
+        <details class="accordion-section" id="section-history">
+            <summary>📋 獲得履歴</summary>
+            <div class="accordion-body">
+                <div class="filters">
+                    <div class="filter-group"><label>期間:</label><select id="period-filter"><option value="all">全期間</option><option value="year">今年</option><option value="month">今月</option><option value="quarter">今四半期</option></select></div>
+                    <div class="filter-group"><label>カテゴリ:</label><select id="category-filter"><option value="all">全て</option><option value="航空">航空</option><option value="ライフスタイルサービス">ライフスタイルサービス</option><option value="その他">その他</option></select></div>
+                    <div class="filter-group"><label>検索:</label><input type="text" id="search-filter" placeholder="サービス名や内容で検索"></div>
                 </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-outline" onclick="window.app.resetForm()">リセット</button>
-                    <button type="submit" class="btn btn-primary" id="submit-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>追加</button>
-                </div>
-                <input type="hidden" id="edit-id">
-            </form>
-        </div>
-
-        <div class="card">
-            <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>獲得履歴</h2>
-            <div class="filters">
-                <div class="filter-group"><label>期間:</label><select id="period-filter"><option value="all">全期間</option><option value="year">今年</option><option value="month">今月</option><option value="quarter">今四半期</option></select></div>
-                <div class="filter-group"><label>カテゴリ:</label><select id="category-filter"><option value="all">全て</option><option value="航空">航空</option><option value="ライフスタイルサービス">ライフスタイルサービス</option><option value="その他">その他</option></select></div>
-                <div class="filter-group"><label>検索:</label><input type="text" id="search-filter" placeholder="サービス名や内容で検索"></div>
+                <div class="table-container"><table id="history-table">
+                    <thead><tr><th onclick="window.app.sortTable(0)">積算日 ↕</th><th onclick="window.app.sortTable(1)">カテゴリー ↕</th><th onclick="window.app.sortTable(2)">サービス ↕</th><th onclick="window.app.sortTable(3)">内容 ↕</th><th onclick="window.app.sortTable(4)">ポイント ↕</th><th>操作</th></tr></thead>
+                    <tbody id="history-body"></tbody>
+                </table></div>
             </div>
-            <div class="table-container"><table id="history-table">
-                <thead><tr><th onclick="window.app.sortTable(0)">積算日 ↕</th><th onclick="window.app.sortTable(1)">カテゴリー ↕</th><th onclick="window.app.sortTable(2)">サービス ↕</th><th onclick="window.app.sortTable(3)">内容 ↕</th><th onclick="window.app.sortTable(4)">ポイント ↕</th><th>操作</th></tr></thead>
-                <tbody id="history-body"></tbody>
-            </table></div>
-        </div>
+        </details>
+
+        <!-- ⑥ 分析・シミュレーション（折り畳み） -->
+        <details class="accordion-section" id="section-analysis">
+            <summary>📊 分析・シミュレーション</summary>
+            <div class="accordion-body">
+                <!-- カテゴリ別ドーナツ + 統計 -->
+                <div class="analysis-top-layout">
+                    <div class="category-donut-wrap">
+                        <div class="analysis-section-label">カテゴリ別構成</div>
+                        <canvas id="categoryDonut"></canvas>
+                    </div>
+                    <div id="analysis-grid">
+                        <div style="color:var(--text-tertiary);font-size:0.9rem;">データ読み込み中...</div>
+                    </div>
+                </div>
+                <!-- シナリオ分析 -->
+                <div class="scenario-section">
+                    <div class="scenario-section-title">🔮 シナリオ分析</div>
+                    <div class="scenario-base-row">
+                        <label>ベースペース</label>
+                        <input type="number" id="scenario-base" value="21" min="0" max="500" style="width:60px;">
+                        <span style="color:var(--text-tertiary);font-size:0.85rem;">LSP/月（直近3ヶ月ライフスタイル平均）</span>
+                    </div>
+                    <div id="scenario-month-rows"></div>
+                    <div class="scenario-actions">
+                        <button class="btn btn-outline" onclick="window.app.addScenarioMonth()">＋ 特定月を追加</button>
+                        <button class="btn btn-secondary" onclick="window.app.runScenario()">シミュレーション実行</button>
+                    </div>
+                    <div id="scenario-result" style="display:none;"></div>
+                    <div id="scenario-history"></div>
+                </div>
+                <div class="achievements" id="achievements" style="margin-top:0.75rem;"></div>
+            </div>
+        </details>
     </div>
 
 <script>
-// グローバルスコープに関数を公開するためのオブジェクト
 window.app = {};
 
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     let transactions = [];
     let filteredTransactions = [];
     const charts = {};
     let sortOrder = { column: 0, direction: 'desc' };
+
+    const MILESTONE_STEP = 1500;
 
     const categoryClassMap = {
         '航空': 'koukuu',
         'ライフスタイルサービス': 'lifestyle',
         'その他': 'etc'
     };
+
+    // ===== 表記ゆれ正規化 =====
+    const SERVICE_NORMALIZE = {
+        'JAL pay':               'JAL Pay',
+        'JAL PAY両替':           'JAL Pay両替',
+        'JAL マイレージパーク':  'JALマイレージパーク',
+    };
+
+    const CONTENT_NORMALIZE = {
+        'JAL Mall':                  'JAL Mall利用',
+        'JAL Pay 利用':              'JAL Pay利用',
+        'JAL pay利用':               'JAL Pay利用',
+        'Jal pay利用':               'JAL Pay利用',
+        'JALモバイル':               'JALモバイル利用',
+        'JAL PAY両替利用':           'JAL Pay両替利用',
+        'JAL マイレージパーク利用':  'JALマイレージパーク利用',
+    };
+
+    const normalizeTransaction = (t) => ({
+        ...t,
+        service: SERVICE_NORMALIZE[t.service] ?? t.service,
+        content: CONTENT_NORMALIZE[t.content] ?? t.content,
+    });
+
+    // ===== サービス/内容の選択肢：履歴から動的生成 =====
+
+    // 指定カテゴリの使用済みサービス一覧を使用回数順で返す
+    const getServicesByCategory = (category) => {
+        const counts = {};
+        transactions
+            .filter(t => t.category === category)
+            .forEach(t => { counts[t.service] = (counts[t.service] || 0) + 1; });
+        return Object.entries(counts)
+            .sort(([, a], [, b]) => b - a)
+            .map(([s]) => s);
+    };
+
 
     const initialData = [
         { id: 1, date: '2024-12-31', category: 'その他', service: '繰越', content: '2024年までの獲得分', points: 195 },
@@ -794,45 +1292,141 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 35, date: '2025-06-16', category: 'ライフスタイルサービス', service: 'JAL Pay', content: 'JAL Pay 利用', points: 1 },
         { id: 36, date: '2025-06-16', category: '航空', service: 'JAL国内線', content: 'JAL国内線利用', points: 10 },
         { id: 37, date: '2025-06-17', category: 'ライフスタイルサービス', service: 'JAL Pay両替', content: 'JAL Pay両替利用', points: 1 },
-        { id: 38, date: '2025-06-23', category: 'ライフスタイルサービス', service: 'JALモバイル', content: 'JALモバイル', points: 1 },
+        { id: 38, date: '2025-06-23', category: 'ライフスタイルサービス', service: 'JALモバイル', content: 'JALモバイル利用', points: 1 },
         { id: 39, date: '2025-07-01', category: 'その他', service: 'JAL Mall', content: 'JAL Mall', points: 2 },
         { id: 40, date: '2025-07-08', category: 'ライフスタイルサービス', service: 'JAL Pay', content: 'JAL Pay 利用', points: 1 },
         { id: 41, date: '2025-07-11', category: 'ライフスタイルサービス', service: 'JAL Mall', content: 'JAL Mall利用', points: 1 },
     ];
+
+    // ===== フォーム: ドロップダウン制御 =====
+
+    // カテゴリ変更時：サービス選択肢を履歴から動的生成（使用頻度順）
+    const updateServiceOptions = (category) => {
+        const select = document.getElementById('form-service-select');
+        const services = getServicesByCategory(category);
+        select.innerHTML = '<option value="">選択してください</option>' +
+            services.map(s => `<option value="${s}">${s}</option>`).join('') +
+            '<option value="_custom">新規サービス（自由入力）</option>';
+        hideCustomInput('form-service-text');
+    };
+
+    // クイック選択ドロップダウンを使用頻度順で再構築
+    const refreshQuickSelect = () => {
+        const sel = document.getElementById('form-quick-select');
+        const counts = {};
+        transactions.forEach(t => {
+            if (t.service === '繰越' || t.service === 'FOP調整' || t.category === 'その他') return;
+            const key = `${t.category}|${t.service}|${t.content}`;
+            counts[key] = (counts[key] || 0) + 1;
+        });
+        const sorted = Object.entries(counts).sort(([,a],[,b]) => b - a);
+        sel.innerHTML = '<option value="">─ 選んでカテゴリ・サービス・内容を一括入力 ─</option>' +
+            sorted.map(([key, cnt]) => {
+                const [, service, content] = key.split('|');
+                return `<option value="${key}">${service}／${content}（${cnt}回）</option>`;
+            }).join('');
+    };
+
+    // データ更新後、フォームのサービス選択肢を再構築（現在の選択値は保持）
+    const refreshServiceDropdown = () => {
+        const category = document.getElementById('form-category').value;
+        const serviceSelect = document.getElementById('form-service-select');
+        const currentVal = serviceSelect.value;
+        const services = getServicesByCategory(category);
+        serviceSelect.innerHTML = '<option value="">選択してください</option>' +
+            services.map(s => `<option value="${s}">${s}</option>`).join('') +
+            '<option value="_custom">新規サービス（自由入力）</option>';
+        if (currentVal && serviceSelect.querySelector(`option[value="${currentVal}"]`)) {
+            serviceSelect.value = currentVal;
+        }
+    };
+
+    const showCustomInput = (id) => {
+        document.getElementById(id).classList.add('visible');
+    };
+    const hideCustomInput = (id) => {
+        const el = document.getElementById(id);
+        el.classList.remove('visible');
+        el.value = '';
+    };
+
+    const getFormServiceValue = () => {
+        const select = document.getElementById('form-service-select');
+        return select.value === '_custom'
+            ? document.getElementById('form-service-text').value.trim()
+            : select.value;
+    };
+
+    const getFormContentValue = () =>
+        document.getElementById('form-content-text').value.trim();
+
+    // ===== イベントリスナー =====
 
     const setupEventListeners = () => {
         document.getElementById('data-form').addEventListener('submit', handleFormSubmit);
         document.getElementById('period-filter').addEventListener('change', applyFilters);
         document.getElementById('category-filter').addEventListener('change', applyFilters);
         document.getElementById('search-filter').addEventListener('input', applyFilters);
-        document.getElementById('monthly-target').addEventListener('change', updateAll);
+
+        // カテゴリ変更 → サービス選択肢を更新
+        document.getElementById('form-category').addEventListener('change', (e) => {
+            updateServiceOptions(e.target.value);
+        });
+
+        // サービス変更 → カスタム入力表示切替のみ
+        document.getElementById('form-service-select').addEventListener('change', (e) => {
+            if (e.target.value === '_custom') {
+                showCustomInput('form-service-text');
+            } else {
+                hideCustomInput('form-service-text');
+            }
+        });
+
+        // クイック追加バー: Enterキーで追加
+        document.getElementById('qa-points').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); window.app.quickAdd(); }
+        });
     };
 
-// ▼▼▼ ここから貼り付け ▼▼▼
-
-    // Cloudflare Workerの設定
+    // ===== Cloudflare Worker =====
     const API_URL = "https://ancient-flower-7846.mrkn55.workers.dev";
-    const API_KEY = "takeshi_secret_2025"; 
+    const API_KEY = "takeshi_secret_2025";
 
-    // データの読み込み（クラウド優先 → 失敗ならローカル）
     const loadData = async () => {
         try {
-            // クラウドから取得
             const response = await fetch(API_URL, {
                 method: 'GET',
                 headers: { 'X-Api-Key': API_KEY }
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
-                // クラウドにデータがあればそれを採用
                 if (data && data.length > 0) {
-                    transactions = data;
+                    // 正規化を適用してから格納
+                    const normalized = data.map(normalizeTransaction);
+                    const hasChanges = normalized.some((t, i) =>
+                        t.service !== data[i].service || t.content !== data[i].content
+                    );
+                    transactions = normalized;
                     console.log('クラウドからデータを読み込みました');
+                    if (hasChanges) {
+                        console.log('表記ゆれを正規化して保存します');
+                        saveData(); // 正規化済みデータを即座に保存
+                    }
                 } else {
-                    // クラウドが空ならローカルストレージを使用（初回など）
-                    console.log('クラウドは空です。ローカルデータを使います');
-                    loadFromLocal();
+                    // クラウドが空 → ローカルストレージを優先（データ損失防止）
+                    const stored = localStorage.getItem('jalLspTransactions');
+                    const localData = stored ? JSON.parse(stored) : [];
+                    if (localData.length > 0) {
+                        transactions = localData;
+                        showNotification('クラウドが空のため、ローカルデータを表示中', 'warning');
+                        console.warn('クラウドが空。ローカルデータを使用。');
+                    } else {
+                        // 本当に初回 → 初期データをセット（ローカルにのみ保存）
+                        transactions = [...initialData];
+                        localStorage.setItem('jalLspTransactions', JSON.stringify(transactions));
+                        console.log('初回起動: 初期データを使用');
+                    }
                 }
             } else {
                 console.warn('クラウド接続エラー:', response.status);
@@ -846,28 +1440,23 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
     };
 
-    // ローカルストレージからの読み込み（予備用）
     const loadFromLocal = () => {
         const stored = localStorage.getItem('jalLspTransactions');
-        transactions = stored ? JSON.parse(stored) : [...initialData];
+        const raw = stored ? JSON.parse(stored) : [...initialData];
+        transactions = raw.map(normalizeTransaction);
     };
 
-    // データの保存（クラウド ＋ ローカル両方に保存）
     const saveData = async () => {
-        // 1. まずローカルに保存（念のため）
         localStorage.setItem('jalLspTransactions', JSON.stringify(transactions));
-
-        // 2. クラウドに保存
         try {
             const response = await fetch(API_URL, {
                 method: "POST",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
-                    "X-Api-Key": API_KEY 
+                    "X-Api-Key": API_KEY
                 },
                 body: JSON.stringify(transactions)
             });
-            
             if (response.ok) {
                 console.log('クラウド保存完了');
             } else {
@@ -880,22 +1469,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // バックアップ出力（日付8桁入り：YYYYMMDD）
     app.exportData = (type) => {
         const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, '0');
-        const dd = String(now.getDate()).padStart(2, '0');
-        const dateStr = `${yyyy}${mm}${dd}`; // 例: 20251214
-
-        const content = type === 'csv' ? 
+        const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+        const content = type === 'csv' ?
             ['date,category,service,content,points'].concat(transactions.map(t => Object.values(t).slice(1).join(','))).join('\n') :
             JSON.stringify({ version: '1.0', exportDate: new Date().toISOString(), data: transactions }, null, 2);
-        
         const mime = type === 'csv' ? 'text/csv' : 'application/json';
-        // ファイル名に日付を入れる
         const filename = `jal_lsp_${type}_${dateStr}.${type === 'csv' ? 'csv' : 'json'}`;
-        
         const blob = new Blob([content], { type: mime });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -906,165 +1487,193 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification(`${filename} を出力しました`, 'success');
     };
 
-    // ▲▲▲ ここまで ▲▲▲
+    // ===== マイルストーン計算 =====
+
+    const getNextMilestone = (current) => {
+        return Math.ceil(Math.max(current + 1, MILESTONE_STEP) / MILESTONE_STEP) * MILESTONE_STEP;
+    };
+
+    const getPrevMilestone = (current) => {
+        return Math.floor(current / MILESTONE_STEP) * MILESTONE_STEP;
+    };
+
+    // ===== 予測: ライフスタイルサービスの直近3か月平均 + 国内線1往復(10LSP) =====
+    // ※「その他」カテゴリ（キャンペーン等の一時的ボーナス）は含めない
+    // ※ NEOBANKシリーズは半年おき（不規則）のため除外
+
+    // 月次ペース計算から除外するサービスの判定
+    const isIrregularService = (service) => service.includes('NEOBANK');
+
+    // low: ライフスタイル平均のみ、high: + 国内線1往復(10LSP)
+    // 当月は月途中のため除外し、直前の完了3ヶ月を対象にする
+    const getPaceRange = () => {
+        const now = new Date();
+        const thisMonthStart  = new Date(now.getFullYear(), now.getMonth(), 1);     // 当月1日（除外境界）
+        const threeMonthsAgo  = new Date(now.getFullYear(), now.getMonth() - 3, 1); // 3か月前1日
+        const lifestyle = transactions.filter(t => {
+            const d = new Date(t.date);
+            return t.category === 'ライフスタイルサービス' &&
+                d >= threeMonthsAgo &&
+                d <  thisMonthStart &&      // 当月を含めない
+                !isIrregularService(t.service);
+        });
+        const low = lifestyle.reduce((s, t) => s + t.points, 0) / 3;
+        return { low, high: low + 10 };
+    };
+    const getMonthlyPace = () => getPaceRange().high;  // シミュレーション用（上限ペース）
+
+    // ===== メイン更新処理 =====
 
     const updateAll = () => {
-        applyFilters(); // This will call updateTable
+        applyFilters();
         updateSummary();
         updateCharts();
         updateAchievements();
+        refreshServiceDropdown();
+        refreshQuickSelect();
+        updateAnalysis();
     };
 
     const updateSummary = () => {
         const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
-        const target = 1500;
-        const needed = Math.max(0, target - totalPoints);
-        const percentage = totalPoints > 0 ? Math.min(100, (totalPoints / target) * 100) : 0;
+        const nextTarget = getNextMilestone(totalPoints);
+        const prevTarget = getPrevMilestone(totalPoints);
+        const needed = nextTarget - totalPoints;
+
+        // ドーナツは「現マイルストーン区間内」の進捗を表示
+        const rangePoints = totalPoints - prevTarget;
+        const rangeTotal = nextTarget - prevTarget;
+        const percentage = (rangePoints / rangeTotal) * 100;
+
         const now = new Date();
         const currentMonthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
         const currentMonthPoints = transactions
             .filter(t => t.date.startsWith(currentMonthKey))
             .reduce((sum, t) => sum + t.points, 0);
 
-        document.getElementById('current-points').textContent = totalPoints;
-        document.getElementById('points-needed').textContent = needed;
+        document.getElementById('current-points').textContent = totalPoints.toLocaleString();
         document.getElementById('current-month-points').textContent = currentMonthPoints;
 
-        updateDonutChart(totalPoints, needed, percentage);
-        updatePrediction(totalPoints, target);
+        // 次の目標表示（予測サマリーバー）
+        document.getElementById('next-milestone-value').textContent = nextTarget.toLocaleString();
+        document.getElementById('next-milestone-remaining').textContent = needed.toLocaleString();
+
+        updatePrediction(totalPoints, nextTarget);
     };
 
-    const updateDonutChart = (total, needed, percentage) => {
-        const ctx = document.getElementById('progressDonut').getContext('2d');
-        if (charts.donut) charts.donut.destroy();
-        charts.donut = new Chart(ctx, {
+    const updateCategoryDonut = () => {
+        const ctx = document.getElementById('categoryDonut');
+        if (!ctx) return;
+        const realTx = transactions.filter(t =>
+            t.service !== '繰越' && t.service !== 'FOP調整' && t.date.slice(0, 7) !== '2024-12'
+        );
+        const catTotals = {};
+        realTx.forEach(t => { catTotals[t.category] = (catTotals[t.category] || 0) + t.points; });
+        const cats = ['航空', 'ライフスタイルサービス', 'その他'];
+        const colors = ['#003a70', '#008a5b', '#f59e0b'];
+        const data = cats.map(c => catTotals[c] || 0);
+        const total = data.reduce((a, b) => a + b, 0);
+        if (charts.categoryDonut) charts.categoryDonut.destroy();
+        charts.categoryDonut = new Chart(ctx.getContext('2d'), {
             type: 'doughnut',
             data: {
-                datasets: [{
-                    data: [total, Math.max(0, needed)],
-                    backgroundColor: ['#d32d3a', '#e2e8f0'],
-                    borderWidth: 0,
-                }]
+                labels: cats,
+                datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: 'var(--bg-secondary)' }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false, cutout: '70%',
-                plugins: { legend: { display: false }, tooltip: { enabled: false } }
+                responsive: true, maintainAspectRatio: true, cutout: '55%',
+                plugins: {
+                    legend: { display: true, position: 'bottom', labels: { font: { size: 11 }, padding: 8, boxWidth: 12 } },
+                    tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw} LSP (${total ? Math.round(c.raw/total*100) : 0}%)` } }
+                }
             }
         });
-        document.getElementById('donut-center').innerHTML = `<div class="percentage">${percentage.toFixed(1)}%</div><div class="label">達成率</div>`;
-    };
-    
-    const getMonthsOfData = (data) => {
-        if (data.length === 0) return 0;
-        const dates = data.map(t => new Date(t.date)).sort((a, b) => a - b);
-        const firstDate = dates[0];
-        const lastDate = dates[dates.length - 1];
-        return Math.max(1, (lastDate.getFullYear() - firstDate.getFullYear()) * 12 + lastDate.getMonth() - firstDate.getMonth() + 1);
     };
 
-    const updatePrediction = (currentPoints, target) => {
-        if (currentPoints >= target) {
+    const updatePrediction = (currentPoints, nextTarget) => {
+        if (currentPoints >= nextTarget) {
             document.getElementById('prediction-date').textContent = '達成済み！';
+            document.getElementById('prediction-note').textContent = '';
             return;
         }
-        const lifestylePace = getCurrentMonthlyPace().lifestyle;
-        const flightPace = 10 / 3;
-        const totalPace = lifestylePace + flightPace;
-
-        if (totalPace > 0) {
-            const monthsToTarget = (target - currentPoints) / totalPace;
-            const targetDate = new Date();
-            targetDate.setMonth(targetDate.getMonth() + monthsToTarget);
-            document.getElementById('prediction-date').textContent = `${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月頃`;
+        const { low, high } = getPaceRange();
+        if (high > 0) {
+            const needed = nextTarget - currentPoints;
+            const dateHigh = new Date();
+            dateHigh.setMonth(dateHigh.getMonth() + needed / high);
+            const fmt = d => `${d.getFullYear()}年${d.getMonth() + 1}月`;
+            let dateText;
+            if (low > 0) {
+                const dateLow = new Date();
+                dateLow.setMonth(dateLow.getMonth() + needed / low);
+                // 同月なら1つ、異なれば範囲表示
+                if (fmt(dateLow) === fmt(dateHigh)) {
+                    dateText = `${fmt(dateHigh)}頃`;
+                } else {
+                    dateText = `${fmt(dateHigh)}〜${fmt(dateLow)}頃`;
+                }
+            } else {
+                dateText = `${fmt(dateHigh)}頃`;
+            }
+            document.getElementById('prediction-date').textContent = dateText;
+            document.getElementById('prediction-note').textContent =
+                `非フライト3ヶ月平均 ${Math.round(low)}〜${Math.round(low + 10)} LSP/月`;
         } else {
             document.getElementById('prediction-date').textContent = '予測不可';
+            document.getElementById('prediction-note').textContent = '';
         }
     };
 
     const updateCharts = () => {
-        updateServiceChart();
+        updateCategoryDonut();
         const activeToggle = document.querySelector('.chart-toggle.active');
         const type = activeToggle ? (activeToggle.textContent.includes('予測') ? 'prediction' : 'monthly') : 'prediction';
         updateMainChart(type);
     };
 
-    const updateServiceChart = () => {
-        const ctx = document.getElementById('serviceChart').getContext('2d');
-        if (charts.service) charts.service.destroy();
-        
-        const serviceData = {};
-        transactions.filter(t => t.service !== '繰越').forEach(t => {
-            serviceData[t.service] = (serviceData[t.service] || 0) + t.points;
-        });
-
-        const sortedServices = Object.entries(serviceData).sort(([, a], [, b]) => b - a);
-        const topServices = sortedServices.slice(0, 7);
-        const otherServices = sortedServices.slice(7);
-        
-        const chartData = {};
-        topServices.forEach(([service, points]) => { chartData[service] = points; });
-        if (otherServices.length > 0) {
-            chartData['その他サービス'] = otherServices.reduce((sum, [, points]) => sum + points, 0);
-        }
-
-        const labels = Object.keys(chartData);
-        const data = Object.values(chartData);
-        const colors = ['#003a70', '#008a5b', '#f59e0b', '#d32d3a', '#7ed321', '#bd10e0', '#4a90e2', '#50e3c2'];
-        const backgroundColors = labels.map((_, i) => colors[i % colors.length]);
-
-        charts.service = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: backgroundColors,
-                    borderWidth: 2, 
-                    borderColor: getComputedStyle(document.body).getPropertyValue('--bg-secondary')
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
-                        position: 'bottom', 
-                        labels: { padding: 20, usePointStyle: true, font: { size: 12 } } 
-                    } 
-                }
-            }
-        });
-    };
 
     const updateMainChart = (type = 'prediction', simulationData = null) => {
         const ctx = document.getElementById('mainChart').getContext('2d');
         if (charts.main) charts.main.destroy();
 
-        const datasets = [];
         const sortedData = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
         let cumulative = 0;
         const actualData = sortedData.map(t => ({ x: new Date(t.date).getTime(), y: (cumulative += t.points) }));
-        datasets.push({ label: '実績', data: actualData, borderColor: '#003a70', backgroundColor: 'rgba(0, 58, 112, 0.1)', borderWidth: 3, fill: true, tension: 0.1, pointRadius: 0 });
-        
+
+        const currentTotal = actualData.length > 0 ? actualData[actualData.length - 1].y : 0;
+        const nextMilestone = getNextMilestone(currentTotal);
+
+        const datasets = [
+            { label: '実績', data: actualData, borderColor: '#003a70', backgroundColor: 'rgba(0, 58, 112, 0.1)', borderWidth: 3, fill: true, tension: 0.1, pointRadius: 0 }
+        ];
+
         if (type === 'prediction') {
-            const predictionData = [];
+            const { low, high } = getPaceRange();
+            const predLowData  = [];
+            const predHighData = [];
             if (actualData.length > 0) {
                 const lastPoint = actualData[actualData.length - 1];
-                predictionData.push(lastPoint);
-                if (lastPoint.y < 1500) {
-                    const lifestylePace = getCurrentMonthlyPace().lifestyle;
-                    const flightPace = 10 / 3;
-                    const totalPace = lifestylePace + flightPace;
-                    if (totalPace > 0) {
-                        const monthsToTarget = (1500 - lastPoint.y) / totalPace;
-                        const targetDate = new Date(lastPoint.x);
-                        targetDate.setMonth(targetDate.getMonth() + monthsToTarget);
-                        predictionData.push({ x: targetDate.getTime(), y: 1500 });
+                predLowData.push(lastPoint);
+                predHighData.push(lastPoint);
+                if (lastPoint.y < nextMilestone) {
+                    if (high > 0) {
+                        const d = new Date(lastPoint.x);
+                        d.setMonth(d.getMonth() + (nextMilestone - lastPoint.y) / high);
+                        predHighData.push({ x: d.getTime(), y: nextMilestone });
+                    }
+                    if (low > 0) {
+                        const d = new Date(lastPoint.x);
+                        d.setMonth(d.getMonth() + (nextMilestone - lastPoint.y) / low);
+                        predLowData.push({ x: d.getTime(), y: nextMilestone });
                     }
                 }
             }
-            datasets.push({ label: '予測', data: predictionData, borderColor: '#d32d3a', borderDash: [5, 5], borderWidth: 2, fill: false, pointRadius: 0 });
+            // 下限ライン（先に追加して fill: '+1' で上限との間を塗る）
+            datasets.push({ label: '予測（下限）', data: predLowData,  borderColor: 'rgba(211,45,58,0.4)', borderDash: [4,4], borderWidth: 1.5, fill: '+1', backgroundColor: 'rgba(211,45,58,0.08)', pointRadius: 0 });
+            // 上限ライン
+            datasets.push({ label: '予測（上限）', data: predHighData, borderColor: '#d32d3a',              borderDash: [5,5], borderWidth: 2,   fill: false, pointRadius: 0 });
 
-            if(simulationData) {
+            if (simulationData) {
                 datasets.push({ label: 'シミュレーション', data: simulationData, borderColor: '#f59e0b', borderDash: [5, 5], borderWidth: 2, fill: false, pointRadius: 0 });
             }
 
@@ -1074,23 +1683,57 @@ document.addEventListener('DOMContentLoaded', () => {
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     scales: { x: { type: 'time', time: { unit: 'month' } }, y: { beginAtZero: true } },
-                    plugins: { legend: { display: true, position: 'top' }, annotation: { annotations: { targetLine: { type: 'line', yMin: 1500, yMax: 1500, borderColor: '#d32d3a', borderWidth: 2, borderDash: [10, 5], label: { content: '目標: 1500 LSP', display: true, position: 'start' } } } } }
+                    plugins: {
+                        legend: { display: true, position: 'top' },
+                        annotation: { annotations: { targetLine: { type: 'line', yMin: nextMilestone, yMax: nextMilestone, borderColor: '#d32d3a', borderWidth: 2, borderDash: [10, 5], label: { content: `目標: ${nextMilestone.toLocaleString()} LSP`, display: true, position: 'start' } } } }
+                    }
                 }
             });
-        } else { // monthly
-            const monthlyData = {};
+        } else {
+            // カテゴリ別に月次集計（積み上げ）
+            const CAT_LIST = ['ライフスタイルサービス', '航空', 'その他'];
+            const CAT_COLORS = {
+                '航空':               '#003a70',
+                'ライフスタイルサービス': '#008a5b',
+                'その他':             '#f59e0b',
+            };
+            const monthlyByCat = {};
             transactions.forEach(t => {
-                const monthKey = t.date.slice(0, 7);
-                monthlyData[monthKey] = (monthlyData[monthKey] || 0) + t.points;
+                const key = t.date.slice(0, 7);
+                if (!monthlyByCat[key]) monthlyByCat[key] = { '航空': 0, 'ライフスタイルサービス': 0, 'その他': 0 };
+                monthlyByCat[key][t.category] = (monthlyByCat[key][t.category] || 0) + t.points;
             });
-            const sortedMonths = Object.keys(monthlyData).sort();
+            const sortedMonths = Object.keys(monthlyByCat).sort();
             charts.main = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: sortedMonths.map(m => m.replace('-', '/')),
-                    datasets: [{ label: '月間獲得ポイント', data: sortedMonths.map(m => monthlyData[m]), backgroundColor: '#003a70' }]
+                    datasets: CAT_LIST.map(cat => ({
+                        label: cat,
+                        data: sortedMonths.map(m => monthlyByCat[m]?.[cat] || 0),
+                        backgroundColor: CAT_COLORS[cat],
+                        stack: 'monthly',
+                    }))
                 },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: true, position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                footer: (items) => {
+                                    const total = items.reduce((s, i) => s + i.parsed.y, 0);
+                                    return `合計: ${total} LSP`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
     };
@@ -1098,7 +1741,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateAchievements = () => {
         const achievements = [];
         const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
-        [100, 250, 500, 750, 1000, 1250].forEach(m => { if (totalPoints >= m) achievements.push(`🎯 ${m} LSP達成`); });
+        [100, 250, 500, 750, 1000, 1250, 1500].forEach(m => { if (totalPoints >= m) achievements.push(`🎯 ${m} LSP達成`); });
         const recentLifestyle = transactions.filter(t => new Date(t.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) && t.category === 'ライフスタイルサービス');
         if (recentLifestyle.length >= 10) achievements.push('🔥 月間10回利用達成');
         document.getElementById('achievements').innerHTML = achievements.slice(-3).map(a => `<div class="achievement">${a}</div>`).join('');
@@ -1134,20 +1777,51 @@ document.addEventListener('DOMContentLoaded', () => {
             const bVal = getSortValue(b, sortOrder.column);
             return sortOrder.direction === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
         });
-        sorted.forEach(t => {
-            const row = tbody.insertRow();
-            const categoryClass = categoryClassMap[t.category] || 'etc';
-            row.innerHTML = `
-                <td>${formatDate(t.date)}</td>
-                <td><span class="category-badge category-${categoryClass}">${t.category}</span></td>
-                <td>${t.service}</td>
-                <td>${t.content}</td>
-                <td class="points-cell">${t.points} LSP</td>
-                <td class="action-buttons">
-                    <button class="action-btn edit" onclick="window.app.startEdit(${t.id})" title="編集"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg></button>
-                    <button class="action-btn delete" onclick="window.app.deleteTransaction(${t.id})" title="削除"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
-                </td>
-            `;
+
+        // 月ごとにグループ化（ソート順を保持）
+        const monthKeys = [...new Set(sorted.map(t => t.date.slice(0, 7)))];
+        const byMonth = {};
+        sorted.forEach(t => { const k = t.date.slice(0, 7); (byMonth[k] = byMonth[k] || []).push(t); });
+
+        monthKeys.forEach((mk, idx) => {
+            const txs   = byMonth[mk];
+            const total = txs.reduce((s, t) => s + t.points, 0);
+            const [y, m] = mk.split('-');
+            const label = `${y}年${parseInt(m)}月`;
+            const gid   = `mg-${mk.replace('-', '')}`;  // mg-202502 など
+            const open  = idx === 0;                      // 先頭月（最新）だけ展開
+
+            // 月ヘッダー行
+            const hr = tbody.insertRow();
+            hr.className = `month-header${open ? ' open' : ''}`;
+            hr.innerHTML = `<td colspan="6">
+                <span class="mh-icon">${open ? '▼' : '▶'}</span>
+                <strong>${label}</strong>
+                <span class="mh-total">${txs.length}件 ・ ${total} LSP</span>
+            </td>`;
+            hr.addEventListener('click', () => {
+                const isOpen = hr.classList.toggle('open');
+                hr.querySelector('.mh-icon').textContent = isOpen ? '▼' : '▶';
+                tbody.querySelectorAll(`tr.${gid}`).forEach(r => r.classList.toggle('row-hidden', !isOpen));
+            });
+
+            // 明細行
+            txs.forEach(t => {
+                const row = tbody.insertRow();
+                row.className = `${gid}${open ? '' : ' row-hidden'}`;
+                const categoryClass = categoryClassMap[t.category] || 'etc';
+                row.innerHTML = `
+                    <td>${formatDate(t.date)}</td>
+                    <td><span class="category-badge category-${categoryClass}">${t.category}</span></td>
+                    <td>${t.service}</td>
+                    <td>${t.content}</td>
+                    <td class="points-cell">${t.points} LSP</td>
+                    <td class="action-buttons">
+                        <button class="action-btn edit" onclick="window.app.startEdit(${t.id})" title="編集"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg></button>
+                        <button class="action-btn delete" onclick="window.app.deleteTransaction(${t.id})" title="削除"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+                    </td>
+                `;
+            });
         });
     };
 
@@ -1156,12 +1830,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleFormSubmit = (e) => {
         e.preventDefault();
+        const service = getFormServiceValue();
+        const content = getFormContentValue();
+        if (!service) { showNotification('サービスを選択または入力してください', 'error'); return; }
+        if (!content) { showNotification('内容を選択または入力してください', 'error'); return; }
+
         const editId = parseInt(document.getElementById('edit-id').value);
         const formData = {
             date: document.getElementById('form-date').value,
             category: document.getElementById('form-category').value,
-            service: document.getElementById('form-service').value,
-            content: document.getElementById('form-content').value,
+            service,
+            content,
             points: parseInt(document.getElementById('form-points').value)
         };
         if (editId) {
@@ -1177,75 +1856,331 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
         window.app.resetForm();
     };
-    
-    const getCurrentMonthlyPace = () => {
-        const lifestyle = transactions.filter(t => t.category === 'ライフスタイルサービス');
-        const months = getMonthsOfData(lifestyle);
-        return { lifestyle: months > 0 ? lifestyle.reduce((s, t) => s + t.points, 0) / months : 0 };
+
+    // ===== 獲得データ分析 =====
+    const updateAnalysis = () => {
+        const grid = document.getElementById('analysis-grid');
+        if (!grid || transactions.length === 0) return;
+
+        // 繰越・調整・過去累積(2024-12)を除いた実績
+        const realTx = transactions.filter(t =>
+            t.service !== '繰越' &&
+            t.service !== 'FOP調整' &&
+            t.date.slice(0, 7) !== '2024-12'  // 2024/12は過去累積のため分析対象外
+        );
+
+        // 月別集計（実績のみ）
+        const monthlyMap = {};
+        realTx.forEach(t => {
+            const key = t.date.slice(0, 7);
+            monthlyMap[key] = (monthlyMap[key] || 0) + t.points;
+        });
+        const months = Object.keys(monthlyMap).sort();
+        const monthlyValues = months.map(m => monthlyMap[m]);
+        const avgMonthly = months.length > 0
+            ? Math.round(monthlyValues.reduce((a, b) => a + b, 0) / months.length) : 0;
+        const bestMonthIdx = monthlyValues.indexOf(Math.max(...monthlyValues));
+        const bestMonth = months[bestMonthIdx] || null;
+        const bestMonthPts = bestMonth ? monthlyMap[bestMonth] : 0;
+
+        // 直近3ヶ月 vs 前3ヶ月トレンド
+        const now = new Date();
+        const makeMonthKey = (offset) => {
+            const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        };
+        const recent3Sum = [-2, -1, 0].reduce((s, o) => s + (monthlyMap[makeMonthKey(o)] || 0), 0);
+        const prev3Sum   = [-5, -4, -3].reduce((s, o) => s + (monthlyMap[makeMonthKey(o)] || 0), 0);
+        let trendText, trendColor;
+        if (prev3Sum === 0) {
+            trendText = '比較不可'; trendColor = 'var(--text-tertiary)';
+        } else {
+            const pct = Math.round((recent3Sum - prev3Sum) / prev3Sum * 100);
+            trendText  = pct > 0 ? `▲ ${pct}%` : pct < 0 ? `▼ ${Math.abs(pct)}%` : '横ばい';
+            trendColor = pct > 0 ? 'var(--jal-green)' : pct < 0 ? 'var(--danger-red)' : 'var(--text-secondary)';
+        }
+
+        // カテゴリ別合計（繰越除く）
+        const catTotals = {};
+        realTx.forEach(t => { catTotals[t.category] = (catTotals[t.category] || 0) + t.points; });
+        const grandTotal = Object.values(catTotals).reduce((s, v) => s + v, 0);
+
+        // サービス別合計 TOP5（繰越除く）
+        const svcTotals = {};
+        realTx.forEach(t => { svcTotals[t.service] = (svcTotals[t.service] || 0) + t.points; });
+        const topServices = Object.entries(svcTotals).sort(([,a],[,b]) => b - a).slice(0, 5);
+
+        // 直近3ヶ月未使用サービス（ライフスタイル系のみ対象）
+        const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+        const recentSvcs = new Set(
+            transactions.filter(t => new Date(t.date) >= threeMonthsAgo).map(t => t.service)
+        );
+        const lifestyleSvcs = [...new Set(
+            transactions.filter(t => t.category === 'ライフスタイルサービス').map(t => t.service)
+        )];
+        // 半年おきのNEOBANK系は「未使用」として表示しない
+        const unusedRecently = lifestyleSvcs.filter(s => !recentSvcs.has(s) && !isIrregularService(s));
+
+        // シナリオのベースペースを直近3ヶ月ライフスタイル平均で自動更新
+        const baseEl = document.getElementById('scenario-base');
+        if (baseEl) baseEl.value = Math.round(getPaceRange().low);
+
+        // カテゴリ別バー
+        const catColors = { '航空': 'var(--jal-blue)', 'ライフスタイルサービス': 'var(--jal-green)', 'その他': 'var(--prediction-orange)' };
+        const catBars = Object.entries(catTotals)
+            .sort(([,a],[,b]) => b - a)
+            .map(([cat, pts]) => `
+                <div style="display:grid; grid-template-columns: 120px 1fr auto; align-items:center; gap:0.75rem; margin-bottom:0.5rem;">
+                    <span style="font-size:0.82rem; font-weight:500;">${cat}</span>
+                    <div style="background:var(--border-color); border-radius:4px; height:8px; overflow:hidden;">
+                        <div style="width:${Math.round(pts/grandTotal*100)}%; height:100%; background:${catColors[cat] || '#94a3b8'}; border-radius:4px;"></div>
+                    </div>
+                    <span style="font-size:0.82rem; font-weight:700; color:var(--jal-red); white-space:nowrap;">${pts} LSP</span>
+                </div>
+            `).join('');
+
+        grid.innerHTML = `
+            <div class="analysis-row">
+                <div class="analysis-stat">
+                    <div class="analysis-stat-label">月平均獲得</div>
+                    <div class="analysis-stat-value">${avgMonthly} <span>LSP</span></div>
+                    <div class="analysis-stat-note">${months.length}ヶ月分の実績平均</div>
+                </div>
+                <div class="analysis-stat">
+                    <div class="analysis-stat-label">最高獲得月</div>
+                    <div class="analysis-stat-value">${bestMonthPts} <span>LSP</span></div>
+                    <div class="analysis-stat-note">${bestMonth ? bestMonth.replace('-', '年') + '月' : '-'}</div>
+                </div>
+                <div class="analysis-stat">
+                    <div class="analysis-stat-label">直近3ヶ月トレンド</div>
+                    <div class="analysis-stat-value" style="color:${trendColor}">${trendText}</div>
+                    <div class="analysis-stat-note">${prev3Sum} → ${recent3Sum} LSP（前3ヶ月比）</div>
+                </div>
+            </div>
+
+            <div class="analysis-two-col">
+                <div>
+                    <div class="analysis-section-title">📊 累計獲得 TOP5 サービス</div>
+                    <div class="analysis-rank-list" style="margin-top:0.75rem;">
+                        ${topServices.map(([svc, pts], i) => `
+                            <div class="analysis-rank-item">
+                                <span class="rank-badge rank-${Math.min(i+1,3)}" style="${i>=3?'background:var(--bg-tertiary);color:var(--text-secondary);':''}">${i+1}</span>
+                                <span class="rank-service">${svc}</span>
+                                <span class="rank-points">${pts} LSP</span>
+                                <div class="rank-bar-wrap">
+                                    <div class="rank-bar" style="width:${Math.round(pts/topServices[0][1]*100)}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div>
+                    <div class="analysis-section-title">🏷️ カテゴリ別内訳</div>
+                    <div style="margin-top:0.75rem;">${catBars}</div>
+                    ${unusedRecently.length > 0 ? `
+                        <div class="analysis-section-title" style="margin-top:1rem;">💡 直近3ヶ月未使用（活用余地あり）</div>
+                        <div class="analysis-unused" style="margin-top:0.5rem;">
+                            ${unusedRecently.map(s => `<span class="unused-badge">${s}</span>`).join('')}
+                        </div>
+                    ` : `<div class="analysis-section-title" style="margin-top:1rem;">✅ 直近3ヶ月でほぼ全サービス利用中</div>`}
+                </div>
+            </div>
+        `;
     };
-    
+
     const showNotification = (message, type = 'success') => {
         const el = document.createElement('div');
         el.className = `notification ${type}`;
         el.textContent = message;
         document.body.appendChild(el);
-        setTimeout(() => document.body.removeChild(el), 3000);
+        setTimeout(() => { if (el.parentNode) document.body.removeChild(el); }, 3000);
     };
 
-    // --- グローバル関数 ---
+    // ===== グローバル関数 =====
+
+    app.quickAdd = () => {
+        const qs = document.getElementById('form-quick-select');
+        if (!qs.value) { showNotification('サービスを選択してください', 'error'); return; }
+        const [category, service, content] = qs.value.split('|');
+        const date = document.getElementById('qa-date').value;
+        const points = parseInt(document.getElementById('qa-points').value);
+        if (!date) { showNotification('日付を入力してください', 'error'); return; }
+        if (!points || points < 1) { showNotification('ポイントを入力してください', 'error'); return; }
+        const newId = transactions.length > 0 ? Math.max(...transactions.map(t => t.id)) + 1 : 1;
+        transactions.push(normalizeTransaction({ id: newId, date, category, service, content, points }));
+        transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+        saveData();
+        updateAll();
+        qs.value = '';
+        document.getElementById('qa-points').value = '';
+        document.getElementById('qa-points').focus();
+        showNotification(`${service}：${points} LSP を追加しました`, 'success');
+    };
+
     app.toggleTheme = () => {
-        const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('jal-lsp-theme', newTheme);
-        updateCharts(); // Re-render charts with new theme colors
+        updateCharts();
     };
+
+    // 特定月追加行を1件追加
+    app.addScenarioMonth = () => {
+        const container = document.getElementById('scenario-month-rows');
+        const now = new Date();
+        const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const defaultMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+        const row = document.createElement('div');
+        row.className = 'scenario-month-row';
+        row.innerHTML = `
+            <input type="month" class="scenario-month-input" value="${defaultMonth}">
+            <span style="color:var(--text-tertiary);">+</span>
+            <input type="number" class="scenario-pts-input" placeholder="LSP" min="1">
+            <input type="text" class="scenario-label-input" placeholder="メモ（例：国内線）">
+            <button class="scenario-remove-btn" onclick="this.closest('.scenario-month-row').remove()">×</button>
+        `;
+        container.appendChild(row);
+        row.querySelector('.scenario-pts-input').focus();
+    };
+
+    // シナリオ実行
     app.runScenario = () => {
-        const additionalPoints = parseInt(document.getElementById('scenario-points').value);
+        const base = Math.max(0, parseInt(document.getElementById('scenario-base').value) || 0);
         const currentPoints = transactions.reduce((sum, t) => sum + t.points, 0);
-        const target = 1500;
+        const target = getNextMilestone(currentPoints);
         const resultEl = document.getElementById('scenario-result');
-        const currentPace = getCurrentMonthlyPace().lifestyle + (10 / 3);
 
         if (currentPoints >= target) {
-            resultEl.innerHTML = `<h4>🎉 既に目標達成済みです！</h4><p>現在のポイント: ${currentPoints} LSP</p>`;
-        } else {
-            const newPace = currentPace + additionalPoints;
-            const monthsToTarget = Math.ceil((target - currentPoints) / newPace);
-            const targetDate = new Date();
-            targetDate.setMonth(targetDate.getMonth() + monthsToTarget);
-            resultEl.innerHTML = `<h4>📊 シナリオ分析結果</h4>
-                <p><strong>現在のペース:</strong> 月間 ${currentPace.toFixed(1)} LSP</p>
-                <p><strong>改善後のペース:</strong> 月間 ${newPace.toFixed(1)} LSP</p>
-                <p><strong>達成時期:</strong> <strong>${targetDate.getFullYear()}年${targetDate.getMonth() + 1}月頃</strong></p>`;
+            resultEl.innerHTML = `<div class="scenario-result-box"><p>🎉 既に目標達成済みです！（現在 ${currentPoints.toLocaleString()} LSP）</p></div>`;
+            resultEl.style.display = 'block';
+            return;
         }
-        resultEl.style.display = 'block';
 
-        // ★修正点: シミュレーション結果をグラフに反映
-        const sortedData = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
-        let cumulative = 0;
-        const actualData = sortedData.map(t => ({ x: new Date(t.date).getTime(), y: (cumulative += t.points) }));
-        
-        const simulationData = [];
-        if(actualData.length > 0) {
-            const lastPoint = actualData[actualData.length - 1];
-            simulationData.push(lastPoint);
-            if(lastPoint.y < 1500) {
-                const newPace = currentPace + additionalPoints;
-                if(newPace > 0) {
-                    const monthsToTarget = (1500 - lastPoint.y) / newPace;
-                    const simTargetDate = new Date(lastPoint.x);
-                    simTargetDate.setMonth(simTargetDate.getMonth() + monthsToTarget);
-                    simulationData.push({ x: simTargetDate.getTime(), y: 1500 });
-                }
-            }
+        // 特定月のマップ作成
+        const specials = {};
+        document.querySelectorAll('.scenario-month-row').forEach(row => {
+            const month = row.querySelector('.scenario-month-input').value;
+            const pts = parseInt(row.querySelector('.scenario-pts-input').value) || 0;
+            const label = row.querySelector('.scenario-label-input').value.trim();
+            if (month && pts > 0) specials[month] = { pts, label };
+        });
+
+        // 月別シミュレーション（来月から最大120ヶ月）
+        const now = new Date();
+        let pts = currentPoints;
+        let simDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const rows = [];
+        let reachedMonth = null;
+
+        for (let i = 0; i < 120 && pts < target; i++) {
+            const key = `${simDate.getFullYear()}-${String(simDate.getMonth() + 1).padStart(2, '0')}`;
+            const special = specials[key] || null;
+            const add = base + (special ? special.pts : 0);
+            pts = Math.min(pts + add, target + 999);
+            rows.push({ key, base, special, add, cum: Math.min(pts, target) });
+            if (pts >= target && !reachedMonth) reachedMonth = key;
+            simDate.setMonth(simDate.getMonth() + 1);
         }
-        updateMainChart('prediction', simulationData);
+
+        if (!reachedMonth) {
+            resultEl.innerHTML = `<div class="scenario-result-box"><p>⚠️ 120ヶ月以内に達成できません。ベースペースを確認してください。</p></div>`;
+            resultEl.style.display = 'block';
+            return;
+        }
+
+        const [y, m] = reachedMonth.split('-');
+        const tableRows = rows.map(r => {
+            const isTarget = r.cum >= target;
+            const specialLabel = r.special ? `<span style="color:var(--jal-red);font-size:0.78rem;"> (+${r.special.pts}${r.special.label ? ' ' + r.special.label : ''})</span>` : '';
+            return `<tr class="${isTarget ? 'row-target' : ''}">
+                <td>${r.key}</td>
+                <td>${r.base}${r.special ? `+<strong>${r.special.pts}</strong>` : ''}${specialLabel} = ${r.add}</td>
+                <td>${r.cum.toLocaleString()} LSP${isTarget ? ' 🎯' : ''}</td>
+            </tr>`;
+        }).join('');
+
+        resultEl.innerHTML = `
+            <div class="scenario-result-box">
+                <div class="scenario-result-headline">
+                    <span style="font-size:1rem;">🎯 達成見込み: <strong style="color:var(--jal-red);">${y}年${parseInt(m)}月頃</strong>（残り ${(target - currentPoints).toLocaleString()} LSP）</span>
+                    <button class="btn btn-outline" style="font-size:0.8rem;padding:0.3rem 0.75rem;" onclick="window.app.savePrediction()">この予測を保存</button>
+                </div>
+                <div class="scenario-table-wrap">
+                    <table class="scenario-table">
+                        <thead><tr><th>月</th><th>獲得内訳</th><th>累計</th></tr></thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </div>
+            </div>`;
+        resultEl.style.display = 'block';
     };
+
+    // 予測を保存
+    app.savePrediction = () => {
+        const base = parseInt(document.getElementById('scenario-base').value) || 0;
+        const currentPoints = transactions.reduce((sum, t) => sum + t.points, 0);
+        const target = getNextMilestone(currentPoints);
+        const specials = {};
+        document.querySelectorAll('.scenario-month-row').forEach(row => {
+            const month = row.querySelector('.scenario-month-input').value;
+            const pts = parseInt(row.querySelector('.scenario-pts-input').value) || 0;
+            const label = row.querySelector('.scenario-label-input').value.trim();
+            if (month && pts > 0) specials[month] = { pts, label };
+        });
+        const headline = document.querySelector('.scenario-result-headline strong');
+        if (!headline) { showNotification('先にシミュレーションを実行してください', 'error'); return; }
+        const predictedText = headline.textContent;
+
+        const today = new Date().toISOString().slice(0, 10);
+        const entry = { savedAt: today, currentPoints, target, basePace: base, specials, predictedText };
+        const history = JSON.parse(localStorage.getItem('jal-scenario-history') || '[]');
+        history.unshift(entry);
+        localStorage.setItem('jal-scenario-history', JSON.stringify(history.slice(0, 15)));
+        renderPredictionHistory();
+        showNotification('予測を保存しました', 'success');
+    };
+
+    // 保存済み予測一覧を描画
+    const renderPredictionHistory = () => {
+        const el = document.getElementById('scenario-history');
+        if (!el) return;
+        const history = JSON.parse(localStorage.getItem('jal-scenario-history') || '[]');
+        if (history.length === 0) { el.innerHTML = ''; return; }
+        const rows = history.map((h, i) => {
+            const specialStr = Object.entries(h.specials || {})
+                .map(([mo, v]) => `${mo}+${v.pts}${v.label ? '(' + v.label + ')' : ''}`)
+                .join(', ') || '－';
+            return `<tr>
+                <td>${h.savedAt}</td>
+                <td>${h.currentPoints} LSP</td>
+                <td>${h.basePace}/月</td>
+                <td style="font-size:0.78rem;">${specialStr}</td>
+                <td><strong>${h.predictedText}</strong></td>
+                <td><button class="scenario-remove-btn" onclick="window.app.deletePrediction(${i})">×</button></td>
+            </tr>`;
+        }).join('');
+        el.innerHTML = `
+            <div class="scenario-history-section">
+                <div class="scenario-history-title">📁 過去の予測記録</div>
+                <div style="overflow-x:auto;">
+                <table class="scenario-history-table">
+                    <thead><tr><th>保存日</th><th>当時</th><th>ベース</th><th>特定月</th><th>予測達成</th><th></th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                </div>
+            </div>`;
+    };
+
+    app.deletePrediction = (index) => {
+        const history = JSON.parse(localStorage.getItem('jal-scenario-history') || '[]');
+        history.splice(index, 1);
+        localStorage.setItem('jal-scenario-history', JSON.stringify(history));
+        renderPredictionHistory();
+    };
+
     app.toggleChart = (event, type) => {
         document.querySelectorAll('.chart-toggle').forEach(btn => btn.classList.remove('active'));
-        if (event && event.target) {
-            event.target.classList.add('active');
-        }
+        if (event && event.target) event.target.classList.add('active');
         updateMainChart(type);
     };
 
@@ -1267,20 +2202,40 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
         event.target.value = '';
     };
+
     app.startEdit = (id) => {
         const t = transactions.find(t => t.id === id);
         if (!t) return;
         document.getElementById('edit-id').value = id;
         document.getElementById('form-date').value = t.date;
         document.getElementById('form-category').value = t.category;
-        document.getElementById('form-service').value = t.service;
-        document.getElementById('form-content').value = t.content;
+
+        // サービス選択肢を更新してから値をセット
+        updateServiceOptions(t.category);
+        const serviceSelect = document.getElementById('form-service-select');
+        if (getServicesByCategory(t.category).includes(t.service)) {
+            serviceSelect.value = t.service;
+            hideCustomInput('form-service-text');
+        } else {
+            serviceSelect.value = '_custom';
+            const stEl = document.getElementById('form-service-text');
+            stEl.classList.add('visible');
+            stEl.value = t.service;
+        }
+
+        // 内容はテキスト直接セット
+        document.getElementById('form-content-text').value = t.content;
+
         document.getElementById('form-points').value = t.points;
         const btn = document.getElementById('submit-btn');
         btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>更新`;
         btn.className = 'btn btn-secondary';
-        document.getElementById('data-form').scrollIntoView({ behavior: 'smooth' });
+        // 手動入力アコーディオンを開いてスクロール
+        const manualSection = document.getElementById('section-manual');
+        manualSection.open = true;
+        manualSection.scrollIntoView({ behavior: 'smooth' });
     };
+
     app.deleteTransaction = (id) => {
         if (!confirm('このデータを削除しますか？')) return;
         transactions = transactions.filter(t => t.id !== id);
@@ -1288,27 +2243,35 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAll();
         showNotification('データを削除しました', 'success');
     };
+
     app.resetForm = () => {
         document.getElementById('data-form').reset();
         document.getElementById('edit-id').value = '';
         document.getElementById('form-date').valueAsDate = new Date();
+        // ドロップダウンを初期状態に戻す
+        updateServiceOptions(document.getElementById('form-category').value);
         const btn = document.getElementById('submit-btn');
         btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>追加`;
         btn.className = 'btn btn-primary';
     };
+
     app.sortTable = (column) => {
         sortOrder.direction = (sortOrder.column === column && sortOrder.direction === 'asc') ? 'desc' : 'asc';
         sortOrder.column = column;
         updateTable();
     };
 
-    // 初期化
+    // ===== 初期化 =====
     const savedTheme = localStorage.getItem('jal-lsp-theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    loadData();
+
     setupEventListeners();
-    updateAll();
+    updateServiceOptions(document.getElementById('form-category').value);
     document.getElementById('form-date').valueAsDate = new Date();
+    document.getElementById('qa-date').valueAsDate = new Date();
+
+    renderPredictionHistory(); // 保存済み予測を初期描画
+    loadData(); // クラウドからデータ取得後にupdateAll()が呼ばれる
 });
 </script>
 </body>
