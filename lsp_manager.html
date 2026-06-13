@@ -1472,8 +1472,12 @@ document.addEventListener('DOMContentLoaded', () => {
     app.exportData = (type) => {
         const now = new Date();
         const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+        const esc = (v) => {
+            const s = String(v ?? '');
+            return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        };
         const content = type === 'csv' ?
-            ['date,category,service,content,points'].concat(transactions.map(t => Object.values(t).slice(1).join(','))).join('\n') :
+            '\uFEFF' + ['date,category,service,content,points'].concat(transactions.map(t => [t.date, t.category, t.service, t.content, t.points].map(esc).join(','))).join('\n') :
             JSON.stringify({ version: '1.0', exportDate: new Date().toISOString(), data: transactions }, null, 2);
         const mime = type === 'csv' ? 'text/csv' : 'application/json';
         const filename = `jal_lsp_${type}_${dateStr}.${type === 'csv' ? 'csv' : 'json'}`;
