@@ -1389,8 +1389,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ===== Cloudflare Worker =====
-    const API_URL = "https://ancient-flower-7846.mrkn55.workers.dev";
-    const API_KEY = "takeshi_secret_2025";
+    // 接続先とAPIキーはコードに書かない(ブラウザで動くコードは誰でも中身を読める)。
+    // 初回だけ入力し、以降は localStorage から読む。別の端末では再入力になる。
+    const API_URL = localStorage.getItem('lsp_api_url')
+        || (() => { const v = prompt('Cloudflare Worker のURLを入力してください'); if (v) localStorage.setItem('lsp_api_url', v); return v; })();
+    const API_KEY = localStorage.getItem('lsp_api_key')
+        || (() => { const v = prompt('APIキーを入力してください'); if (v) localStorage.setItem('lsp_api_key', v); return v; })();
 
     const loadData = async () => {
         try {
