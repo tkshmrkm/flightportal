@@ -691,6 +691,46 @@
         }
         .data-tool-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
 
+        /* 画面コピー一括取り込み */
+        .bulk-help {
+            margin: 0 0 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.65;
+        }
+        #bulk-paste-input {
+            width: 100%;
+            min-height: 180px;
+            box-sizing: border-box;
+            resize: vertical;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font: 0.85rem/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+        }
+        .bulk-options { margin: 0.65rem 0; font-size: 0.88rem; color: var(--text-secondary); }
+        .bulk-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        #bulk-preview { margin-top: 0.85rem; }
+        .bulk-summary {
+            padding: 0.75rem;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            line-height: 1.65;
+            font-size: 0.88rem;
+        }
+        .bulk-preview-wrap { overflow-x: auto; margin-top: 0.65rem; border: 1px solid var(--border-color); border-radius: 8px; }
+        .bulk-preview-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 640px; }
+        .bulk-preview-table th, .bulk-preview-table td { padding: 0.45rem 0.55rem; border-bottom: 1px solid var(--border-color); text-align: left; }
+        .bulk-preview-table th { background: var(--bg-tertiary); white-space: nowrap; }
+        .bulk-preview-table tr:last-child td { border-bottom: none; }
+        .bulk-status { font-weight: 700; white-space: nowrap; }
+        .bulk-status-add { color: var(--jal-green); }
+        .bulk-status-date { color: var(--prediction-orange); }
+        .bulk-status-skip { color: var(--text-tertiary); }
+        .bulk-error { color: var(--danger-red); margin-top: 0.5rem; font-size: 0.85rem; }
+
         /* 分析セクション上部レイアウト */
         .analysis-top-layout {
             display: grid;
@@ -823,11 +863,20 @@
             .header { padding: 1rem; margin-bottom: 0.75rem; }
             .header h1 { font-size: 1.8rem; }
 
-            /* クイック追加バー：2行に折り返し */
-            .quick-add-bar { flex-wrap: wrap; padding: 0.6rem 0.75rem; }
-            .qa-select { flex: 1 1 100%; }   /* 1行目：全幅 */
-            .qa-date { flex: 1; width: auto; min-width: 130px; }  /* 2行目 */
-            .qa-points { width: 70px; }
+            /* クイック追加バー：選択欄 + 均衡の取れた入力行 */
+            .quick-add-bar {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 64px auto 40px;
+                gap: 0.45rem;
+                padding: 0.6rem 0.75rem;
+            }
+            .qa-select { grid-column: 1 / -1; width: 100%; }
+            .qa-date, .qa-points { height: 40px; box-sizing: border-box; }
+            .qa-date { width: 100%; min-width: 0; }
+            .qa-points { width: 100%; min-width: 0; }
+            .qa-btn { width: auto; height: 40px; min-width: 68px; padding: 0 0.7rem; }
+            .quick-add-bar > .theme-toggle { width: 40px; height: 40px; padding: 0; }
+            #section-bulk-import { display: none; } /* コピペ取り込みはPC専用 */
 
             /* 予測サマリーバー：4列→2列×2行 */
             .prediction-summary-bar {
@@ -1162,7 +1211,23 @@
             </div>
         </details>
 
-        <!-- ⑤ 獲得履歴（折り畳み） -->
+        <!-- ⑤ 画面コピー一括取り込み（折り畳み） -->
+        <details class="accordion-section" id="section-bulk-import">
+            <summary>📥 画面コピーを一括取り込み（PC専用）</summary>
+            <div class="accordion-body">
+                <p class="bulk-help">JALの履歴画面などで表をコピーし、そのまま貼り付けてください。タブ区切りとMarkdown表に対応しています。最初に差分だけを確認し、登録済みの行は追加しません。</p>
+                <textarea id="bulk-paste-input" placeholder="積算日&#9;カテゴリー&#9;サービス&#9;内容&#9;ポイント&#10;2026年9月12日&#9;ライフスタイルサービス&#9;JALカード&#9;JALカード利用&#9;10"></textarea>
+                <label class="bulk-options"><input type="checkbox" id="bulk-fix-near-dates" checked> 同じ内容・ポイントで日付が1日だけ違う場合、貼り付けた積算日へ修正する</label>
+                <div class="bulk-actions">
+                    <button type="button" class="btn btn-outline" onclick="window.app.previewBulkImport()">差分を確認</button>
+                    <button type="button" class="btn btn-primary" id="bulk-apply-btn" onclick="window.app.applyBulkImport()" disabled>差分を反映</button>
+                    <button type="button" class="btn btn-outline" onclick="window.app.clearBulkImport()">クリア</button>
+                </div>
+                <div id="bulk-preview" aria-live="polite"></div>
+            </div>
+        </details>
+
+        <!-- ⑥ 獲得履歴（折り畳み） -->
         <details class="accordion-section" id="section-history">
             <summary>📋 獲得履歴</summary>
             <div class="accordion-body">
@@ -1178,7 +1243,7 @@
             </div>
         </details>
 
-        <!-- ⑥ 分析・シミュレーション（折り畳み） -->
+        <!-- ⑦ 分析・シミュレーション（折り畳み） -->
         <details class="accordion-section" id="section-analysis">
             <summary>📊 分析・シミュレーション</summary>
             <div class="accordion-body">
@@ -1222,6 +1287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let filteredTransactions = [];
     const charts = {};
     let sortOrder = { column: 0, direction: 'desc' };
+    let bulkImportPlan = null;
 
     const MILESTONE_STEP = 1500;
 
@@ -1400,6 +1466,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('qa-points').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') { e.preventDefault(); window.app.quickAdd(); }
         });
+
+        document.getElementById('bulk-fix-near-dates').addEventListener('change', () => {
+            if (document.getElementById('bulk-paste-input').value.trim()) window.app.previewBulkImport();
+        });
     };
 
     // ===== Cloudflare Worker =====
@@ -1538,8 +1608,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(transactions)
             });
             cloudStatus('クラウド保存完了');
+            return true;
         } catch (e) {
             cloudStatus('端末内に保存済み／クラウド保存失敗: ' + cloudError(e));
+            return false;
         }
     };
 
@@ -2072,6 +2144,257 @@ document.addEventListener('DOMContentLoaded', () => {
         el.textContent = message;
         document.body.appendChild(el);
         setTimeout(() => { if (el.parentNode) document.body.removeChild(el); }, 3000);
+    };
+
+    // ===== 画面コピー一括取り込み（PC専用） =====
+
+    const cleanBulkCell = (value) => String(value ?? '')
+        .replace(/\*\*/g, '')
+        .replace(/<br\s*\/?>/gi, ' ')
+        .replace(/\u00a0/g, ' ')
+        .trim();
+
+    const parseBulkDate = (value) => {
+        const text = cleanBulkCell(value).replace(/[－―]/g, '-');
+        const match = text.match(/^(\d{4})(?:年|[.\/-])(\d{1,2})(?:月|[.\/-])(\d{1,2})日?$/);
+        if (!match) return null;
+        const year = Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        const check = new Date(Date.UTC(year, month - 1, day));
+        if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return null;
+        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    };
+
+    const parseBulkPoints = (value) => {
+        const text = cleanBulkCell(value)
+            .replace(/[,，]/g, '')
+            .replace(/\s*LSP\s*$/i, '')
+            .replace(/[−―－]/g, '-');
+        if (!/^[+-]?\d+$/.test(text)) return null;
+        const points = Number(text);
+        return Number.isSafeInteger(points) && points !== 0 ? points : null;
+    };
+
+    const isBulkHeader = (cells) => {
+        const joined = cells.join('');
+        return (joined.includes('積算日') && joined.includes('ポイント')) ||
+            cells.every(cell => /^:?-{3,}:?$/.test(cell) || cell === '');
+    };
+
+    const makeBulkRow = (cells, lineNumber) => {
+        const normalizedCells = cells.map(cleanBulkCell);
+        if (normalizedCells.length < 5 || isBulkHeader(normalizedCells)) return null;
+        const date = parseBulkDate(normalizedCells[0]);
+        const category = normalizedCells[1];
+        const service = normalizedCells[2];
+        const content = normalizedCells[3];
+        const points = parseBulkPoints(normalizedCells[4]);
+        const validCategories = ['航空', 'ライフスタイルサービス', 'その他'];
+        if (!date || !validCategories.includes(category) || !service || !content || points === null) {
+            return { error: `${lineNumber}行目を読み取れませんでした`, raw: normalizedCells.join(' / ') };
+        }
+        return normalizeTransaction({ date, category, service, content, points });
+    };
+
+    const parseBulkText = (text) => {
+        const rows = [];
+        const errors = [];
+        const plainLines = [];
+        String(text ?? '').split(/\r?\n/).forEach((rawLine, index) => {
+            const line = rawLine.trim();
+            if (!line) return;
+            let cells = null;
+            if (line.includes('\t')) {
+                cells = line.split('\t');
+            } else if (line.includes('|')) {
+                cells = line.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|');
+            }
+            if (!cells) {
+                plainLines.push({ text: cleanBulkCell(line), lineNumber: index + 1 });
+                return;
+            }
+            const parsed = makeBulkRow(cells, index + 1);
+            if (parsed?.error) errors.push(parsed);
+            else if (parsed) rows.push(parsed);
+        });
+
+        // コピー元によって5項目が縦に並ぶ場合も読み取る。
+        if (rows.length === 0 && plainLines.length >= 5) {
+            for (let index = 0; index <= plainLines.length - 5;) {
+                if (!parseBulkDate(plainLines[index].text)) { index += 1; continue; }
+                const group = plainLines.slice(index, index + 5);
+                const parsed = makeBulkRow(group.map(item => item.text), group[0].lineNumber);
+                if (parsed?.error) errors.push(parsed);
+                else if (parsed) rows.push(parsed);
+                index += 5;
+            }
+        }
+        return { rows, errors };
+    };
+
+    const bulkSignature = (t, includeDate = true) => [
+        ...(includeDate ? [t.date] : []), t.category, t.service, t.content, Number(t.points)
+    ].join('\u001f');
+
+    const dateDistance = (left, right) => Math.abs(
+        Date.parse(`${left}T00:00:00Z`) - Date.parse(`${right}T00:00:00Z`)
+    ) / 86400000;
+
+    const escapeBulkHtml = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const buildBulkPlan = (text, fixNearDates) => {
+        const parsed = parseBulkText(text);
+        const exactExisting = new Set(transactions.map(t => bulkSignature(t)));
+        const incomingIdentityCounts = parsed.rows.reduce((counts, row) => {
+            const identity = bulkSignature(row, false);
+            counts.set(identity, (counts.get(identity) || 0) + 1);
+            return counts;
+        }, new Map());
+        const seenIncoming = new Set();
+        const usedFixIds = new Set();
+        const items = [];
+        const additions = [];
+        const dateFixes = [];
+        let existingCount = 0;
+        let pastedDuplicateCount = 0;
+        let heldNearDateCount = 0;
+
+        parsed.rows.forEach(row => {
+            const signature = bulkSignature(row);
+            if (seenIncoming.has(signature)) {
+                pastedDuplicateCount += 1;
+                items.push({ status: 'skip', label: '貼付内で重複', row });
+                return;
+            }
+            seenIncoming.add(signature);
+            if (exactExisting.has(signature)) {
+                existingCount += 1;
+                items.push({ status: 'skip', label: '登録済み', row });
+                return;
+            }
+            const identity = bulkSignature(row, false);
+            const near = transactions.filter(existing =>
+                !usedFixIds.has(existing.id) &&
+                bulkSignature(existing, false) === identity &&
+                dateDistance(existing.date, row.date) === 1
+            );
+            if (near.length === 1 && incomingIdentityCounts.get(identity) === 1 && fixNearDates) {
+                const fix = { id: near[0].id, fromDate: near[0].date, toDate: row.date, row };
+                usedFixIds.add(near[0].id);
+                dateFixes.push(fix);
+                items.push({ status: 'date', label: `${fix.fromDate} → ${fix.toDate}`, row });
+                return;
+            }
+            if (near.length > 0) {
+                heldNearDateCount += 1;
+                items.push({ status: 'skip', label: '日付が1日差（保留）', row });
+                return;
+            }
+            additions.push(row);
+            items.push({ status: 'add', label: '追加', row });
+        });
+
+        return {
+            sourceText: text,
+            fixNearDates,
+            baseData: JSON.stringify(transactions),
+            parsedCount: parsed.rows.length,
+            errors: parsed.errors,
+            items,
+            additions,
+            dateFixes,
+            existingCount,
+            pastedDuplicateCount,
+            heldNearDateCount
+        };
+    };
+
+    const renderBulkPlan = (plan) => {
+        const preview = document.getElementById('bulk-preview');
+        const actionable = plan.additions.length + plan.dateFixes.length;
+        const summary = `読取 ${plan.parsedCount}件 ／ 追加 ${plan.additions.length}件 ／ 日付修正 ${plan.dateFixes.length}件 ／ 登録済み ${plan.existingCount}件` +
+            (plan.pastedDuplicateCount ? ` ／ 貼付内重複 ${plan.pastedDuplicateCount}件` : '') +
+            (plan.heldNearDateCount ? ` ／ 1日差保留 ${plan.heldNearDateCount}件` : '') +
+            (plan.errors.length ? ` ／ 読取不可 ${plan.errors.length}件` : '');
+        const table = plan.items.length ? `
+            <div class="bulk-preview-wrap"><table class="bulk-preview-table">
+                <thead><tr><th>判定</th><th>積算日</th><th>カテゴリー</th><th>サービス</th><th>内容</th><th>ポイント</th></tr></thead>
+                <tbody>${plan.items.map(item => `<tr>
+                    <td class="bulk-status bulk-status-${item.status}">${escapeBulkHtml(item.label)}</td>
+                    <td>${escapeBulkHtml(item.row.date)}</td><td>${escapeBulkHtml(item.row.category)}</td>
+                    <td>${escapeBulkHtml(item.row.service)}</td><td>${escapeBulkHtml(item.row.content)}</td>
+                    <td>${Number(item.row.points).toLocaleString()}</td>
+                </tr>`).join('')}</tbody>
+            </table></div>` : '';
+        const errors = plan.errors.length
+            ? `<div class="bulk-error">${plan.errors.map(error => escapeBulkHtml(`${error.error}: ${error.raw}`)).join('<br>')}</div>`
+            : '';
+        preview.innerHTML = `<div class="bulk-summary"><strong>${escapeBulkHtml(summary)}</strong>${actionable ? '<br>「差分を反映」で上記の追加・日付修正を保存します。' : '<br>反映する差分はありません。'}</div>${table}${errors}`;
+        document.getElementById('bulk-apply-btn').disabled = actionable === 0;
+    };
+
+    app.previewBulkImport = () => {
+        const input = document.getElementById('bulk-paste-input');
+        const text = input.value.trim();
+        if (!text) {
+            bulkImportPlan = null;
+            document.getElementById('bulk-preview').innerHTML = '<div class="bulk-error">コピーした表を貼り付けてください。</div>';
+            document.getElementById('bulk-apply-btn').disabled = true;
+            return;
+        }
+        bulkImportPlan = buildBulkPlan(text, document.getElementById('bulk-fix-near-dates').checked);
+        renderBulkPlan(bulkImportPlan);
+    };
+
+    app.applyBulkImport = async () => {
+        if (!bulkImportPlan) return;
+        const inputText = document.getElementById('bulk-paste-input').value.trim();
+        const fixNearDates = document.getElementById('bulk-fix-near-dates').checked;
+        if (inputText !== bulkImportPlan.sourceText || fixNearDates !== bulkImportPlan.fixNearDates || JSON.stringify(transactions) !== bulkImportPlan.baseData) {
+            app.previewBulkImport();
+            showNotification('内容が変わったため差分を再確認しました', 'warning');
+            return;
+        }
+        const changeCount = bulkImportPlan.additions.length + bulkImportPlan.dateFixes.length;
+        if (!changeCount) return;
+        localStorage.setItem('jalLspTransactionsBeforeBulkImport', JSON.stringify({
+            createdAt: new Date().toISOString(),
+            data: transactions
+        }));
+        bulkImportPlan.dateFixes.forEach(fix => {
+            const target = transactions.find(t => t.id === fix.id && t.date === fix.fromDate);
+            if (target) target.date = fix.toDate;
+        });
+        let nextId = transactions.length ? Math.max(...transactions.map(t => Number(t.id) || 0)) + 1 : 1;
+        bulkImportPlan.additions.forEach(row => transactions.push(normalizeTransaction({ ...row, id: nextId++ })));
+        transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const added = bulkImportPlan.additions.length;
+        const fixed = bulkImportPlan.dateFixes.length;
+        const cloudSaved = await saveData();
+        updateAll();
+        bulkImportPlan = null;
+        document.getElementById('bulk-paste-input').value = '';
+        document.getElementById('bulk-preview').innerHTML = `<div class="bulk-summary"><strong>反映完了：追加 ${added}件 ／ 日付修正 ${fixed}件</strong><br>反映前の端末データもバックアップしました。</div>`;
+        document.getElementById('bulk-apply-btn').disabled = true;
+        showNotification(
+            cloudSaved
+                ? `追加 ${added}件、日付修正 ${fixed}件をクラウドへ反映しました`
+                : `追加 ${added}件、日付修正 ${fixed}件を端末内に保存しました。クラウド状態を確認してください`,
+            cloudSaved ? 'success' : 'warning'
+        );
+    };
+
+    app.clearBulkImport = () => {
+        bulkImportPlan = null;
+        document.getElementById('bulk-paste-input').value = '';
+        document.getElementById('bulk-preview').innerHTML = '';
+        document.getElementById('bulk-apply-btn').disabled = true;
     };
 
     // ===== グローバル関数 =====
