@@ -975,7 +975,10 @@
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
+            min-width: 0;
         }
+
+        #analysis-summary { min-width: 0; }
 
         .analysis-row {
             display: grid;
@@ -1100,8 +1103,118 @@
             gap: 1.5rem;
         }
 
+        .analysis-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            min-width: 0;
+        }
+
+        .analysis-method {
+            margin-top: 0.35rem;
+            color: var(--text-tertiary);
+            font-size: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .analysis-chart-container {
+            height: 290px;
+            margin-top: 0.85rem;
+            position: relative;
+        }
+
+        .analysis-table-wrap {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            max-height: 390px;
+            margin-top: 0.75rem;
+            overflow: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .analysis-detail-table {
+            width: 100%;
+            min-width: 760px;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .analysis-detail-table th,
+        .analysis-detail-table td {
+            padding: 0.5rem 0.6rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .analysis-detail-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .analysis-detail-table th:first-child,
+        .analysis-detail-table th:nth-child(2),
+        .analysis-detail-table td:first-child,
+        .analysis-detail-table td:nth-child(2) { text-align: left; }
+        .analysis-detail-table tr:last-child td { border-bottom: none; }
+        .analysis-detail-table tbody tr:hover { background: color-mix(in srgb, var(--border-color) 35%, transparent); }
+
+        .continuity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 0.65rem;
+            margin-top: 0.75rem;
+        }
+
+        .continuity-item {
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+            padding: 0.7rem 0.8rem;
+            background: var(--bg-secondary);
+        }
+
+        .continuity-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.5rem;
+            align-items: start;
+        }
+
+        .continuity-service { font-size: 0.84rem; font-weight: 700; }
+        .continuity-status {
+            flex: 0 0 auto;
+            padding: 0.12rem 0.45rem;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+        }
+        .continuity-status-current { color: var(--jal-green); background: rgba(0, 138, 91, 0.1); }
+        .continuity-status-gap { color: var(--prediction-orange); background: rgba(245, 158, 11, 0.12); }
+        .continuity-meta { margin-top: 0.35rem; color: var(--text-tertiary); font-size: 0.73rem; line-height: 1.5; }
+
+        .analysis-empty {
+            padding: 1rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
         @media (max-width: 768px) {
             .analysis-two-col { grid-template-columns: 1fr; }
+            .analysis-row { grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+            .analysis-stat { padding: 0.8rem; }
+            .analysis-stat-value { font-size: 1.2rem; }
+            .analysis-chart-container { height: 240px; }
+            .continuity-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -1253,10 +1366,11 @@
                         <div class="analysis-section-label">カテゴリ別構成</div>
                         <canvas id="categoryDonut"></canvas>
                     </div>
-                    <div id="analysis-grid">
+                    <div id="analysis-summary">
                         <div style="color:var(--text-tertiary);font-size:0.9rem;">データ読み込み中...</div>
                     </div>
                 </div>
+                <div id="analysis-grid" class="analysis-grid"></div>
                 <!-- シナリオ分析 -->
                 <div class="scenario-section">
                     <div class="scenario-section-title">🔮 シナリオ分析</div>
@@ -2010,132 +2124,289 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== 獲得データ分析 =====
     const updateAnalysis = () => {
         const grid = document.getElementById('analysis-grid');
-        if (!grid || transactions.length === 0) return;
+        const summary = document.getElementById('analysis-summary');
+        if (!grid || !summary) return;
 
-        // 繰越・調整・過去累積(2024-12)を除いた実績
+        // 繰越・調整・過去累積(2024-12)を除いた実績を分析対象とする。
         const realTx = transactions.filter(t =>
             t.service !== '繰越' &&
             t.service !== 'FOP調整' &&
-            t.date.slice(0, 7) !== '2024-12'  // 2024/12は過去累積のため分析対象外
+            t.date.slice(0, 7) !== '2024-12'
         );
+        if (realTx.length === 0) {
+            summary.innerHTML = '';
+            grid.innerHTML = '<div class="analysis-empty">分析できる獲得実績がありません。</div>';
+            if (charts.monthlyCategory) charts.monthlyCategory.destroy();
+            return;
+        }
 
-        // 月別集計（実績のみ）
-        const monthlyMap = {};
-        realTx.forEach(t => {
-            const key = t.date.slice(0, 7);
-            monthlyMap[key] = (monthlyMap[key] || 0) + t.points;
-        });
-        const months = Object.keys(monthlyMap).sort();
-        const monthlyValues = months.map(m => monthlyMap[m]);
-        const avgMonthly = months.length > 0
-            ? Math.round(monthlyValues.reduce((a, b) => a + b, 0) / months.length) : 0;
-        const bestMonthIdx = monthlyValues.indexOf(Math.max(...monthlyValues));
-        const bestMonth = months[bestMonthIdx] || null;
-        const bestMonthPts = bestMonth ? monthlyMap[bestMonth] : 0;
-
-        // 直近3ヶ月 vs 前3ヶ月トレンド
         const now = new Date();
         const makeMonthKey = (offset) => {
             const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
             return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         };
-        const recent3Sum = [-2, -1, 0].reduce((s, o) => s + (monthlyMap[makeMonthKey(o)] || 0), 0);
-        const prev3Sum   = [-5, -4, -3].reduce((s, o) => s + (monthlyMap[makeMonthKey(o)] || 0), 0);
-        let trendText, trendColor;
-        if (prev3Sum === 0) {
-            trendText = '比較不可'; trendColor = 'var(--text-tertiary)';
-        } else {
-            const pct = Math.round((recent3Sum - prev3Sum) / prev3Sum * 100);
-            trendText  = pct > 0 ? `▲ ${pct}%` : pct < 0 ? `▼ ${Math.abs(pct)}%` : '横ばい';
+        const formatMonth = key => {
+            const [year, month] = key.split('-');
+            return `${year}年${Number(month)}月`;
+        };
+        const formatDate = value => value ? value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, (_, y, m, d) => `${y}/${m}/${d}`) : '-';
+        const currentMonthKey = makeMonthKey(0);
+        const recent3Keys = [-3, -2, -1].map(makeMonthKey);
+        const previous3Keys = [-6, -5, -4].map(makeMonthKey);
+        const recentWindowKeys = [-2, -1, 0].map(makeMonthKey);
+        const last6Keys = [-5, -4, -3, -2, -1, 0].map(makeMonthKey);
+        const recent3Set = new Set(recent3Keys);
+        const recentWindowSet = new Set(recentWindowKeys);
+        const last6Set = new Set(last6Keys);
+
+        // 月・カテゴリ別集計。存在しない月も0として比較に含める。
+        const categories = ['航空', 'ライフスタイルサービス', 'その他'];
+        const monthlyMap = {};
+        const monthlyCategoryMap = {};
+        realTx.forEach(t => {
+            const key = t.date.slice(0, 7);
+            monthlyMap[key] = (monthlyMap[key] || 0) + t.points;
+            if (!monthlyCategoryMap[key]) monthlyCategoryMap[key] = {};
+            monthlyCategoryMap[key][t.category] = (monthlyCategoryMap[key][t.category] || 0) + t.points;
+        });
+
+        // 完了した3ヶ月同士を比較し、途中月による過小評価を避ける。
+        const recent3Sum = recent3Keys.reduce((sum, key) => sum + (monthlyMap[key] || 0), 0);
+        const previous3Sum = previous3Keys.reduce((sum, key) => sum + (monthlyMap[key] || 0), 0);
+        const recent3Average = Math.round(recent3Sum / 3);
+        let trendText = '比較不可';
+        let trendColor = 'var(--text-tertiary)';
+        if (previous3Sum > 0) {
+            const pct = Math.round((recent3Sum - previous3Sum) / previous3Sum * 100);
+            trendText = pct > 0 ? `▲ ${pct}%` : pct < 0 ? `▼ ${Math.abs(pct)}%` : '横ばい';
             trendColor = pct > 0 ? 'var(--jal-green)' : pct < 0 ? 'var(--danger-red)' : 'var(--text-secondary)';
         }
 
-        // カテゴリ別合計（繰越除く）
-        const catTotals = {};
-        realTx.forEach(t => { catTotals[t.category] = (catTotals[t.category] || 0) + t.points; });
-        const grandTotal = Object.values(catTotals).reduce((s, v) => s + v, 0);
-
-        // サービス別合計 TOP5（繰越除く）
-        const svcTotals = {};
-        realTx.forEach(t => { svcTotals[t.service] = (svcTotals[t.service] || 0) + t.points; });
-        const topServices = Object.entries(svcTotals).sort(([,a],[,b]) => b - a).slice(0, 5);
-
-        // 直近3ヶ月未使用サービス（ライフスタイル系のみ対象）
-        const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-        const recentSvcs = new Set(
-            transactions.filter(t => new Date(t.date) >= threeMonthsAgo).map(t => t.service)
+        const completedMonths = Object.keys(monthlyMap).filter(key => key < currentMonthKey).sort();
+        const bestMonth = completedMonths.reduce((best, key) =>
+            !best || monthlyMap[key] > monthlyMap[best] ? key : best, null
         );
-        const lifestyleSvcs = [...new Set(
-            transactions.filter(t => t.category === 'ライフスタイルサービス').map(t => t.service)
+        const bestMonthPoints = bestMonth ? monthlyMap[bestMonth] : 0;
+        const currentMonthLatestDate = realTx
+            .filter(t => t.date.slice(0, 7) === currentMonthKey)
+            .reduce((latest, t) => t.date > latest ? t.date : latest, '');
+
+        // 累計のカテゴリ・サービス寄与。
+        const categoryTotals = {};
+        const serviceTotals = {};
+        realTx.forEach(t => {
+            categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.points;
+            serviceTotals[t.service] = (serviceTotals[t.service] || 0) + t.points;
+        });
+        const grandTotal = Object.values(categoryTotals).reduce((sum, value) => sum + value, 0);
+        const topServices = Object.entries(serviceTotals).sort(([, a], [, b]) => b - a).slice(0, 5);
+        const topServiceMax = Math.max(1, ...topServices.map(([, points]) => points));
+
+        // サービス×カテゴリの詳細。カテゴリが異なる同名サービスは別行にする。
+        const serviceDetailMap = new Map();
+        realTx.forEach(t => {
+            const key = `${t.category}\u001f${t.service}`;
+            if (!serviceDetailMap.has(key)) {
+                serviceDetailMap.set(key, {
+                    category: t.category,
+                    service: t.service,
+                    count: 0,
+                    total: 0,
+                    recent3: 0,
+                    lastDate: ''
+                });
+            }
+            const item = serviceDetailMap.get(key);
+            item.count += 1;
+            item.total += t.points;
+            if (recent3Set.has(t.date.slice(0, 7))) item.recent3 += t.points;
+            if (t.date > item.lastDate) item.lastDate = t.date;
+        });
+        const serviceDetails = [...serviceDetailMap.values()].sort((a, b) => b.total - a.total || a.service.localeCompare(b.service, 'ja'));
+
+        // 定期利用の確認。NEOBANKは半年周期のため対象外。
+        const regularLifestyleServices = [...new Set(
+            realTx
+                .filter(t => t.category === 'ライフスタイルサービス' && !isIrregularService(t.service))
+                .map(t => t.service)
         )];
-        // 半年おきのNEOBANK系は「未使用」として表示しない
-        const unusedRecently = lifestyleSvcs.filter(s => !recentSvcs.has(s) && !isIrregularService(s));
+        const activeLifestyleCount = regularLifestyleServices.filter(service =>
+            realTx.some(t => t.service === service && recentWindowSet.has(t.date.slice(0, 7)))
+        ).length;
+        const monthIndex = key => {
+            const [year, month] = key.split('-').map(Number);
+            return year * 12 + month - 1;
+        };
+        const median = values => {
+            if (!values.length) return null;
+            const sorted = [...values].sort((a, b) => a - b);
+            const middle = Math.floor(sorted.length / 2);
+            return sorted.length % 2 ? sorted[middle] : Math.round((sorted[middle - 1] + sorted[middle]) / 2);
+        };
+        const continuity = regularLifestyleServices.map(service => {
+            const rows = realTx.filter(t => t.category === 'ライフスタイルサービス' && t.service === service).sort((a, b) => a.date.localeCompare(b.date));
+            const uniqueDates = [...new Set(rows.map(t => t.date))];
+            const gaps = uniqueDates.slice(1).map((date, index) =>
+                Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${uniqueDates[index]}T00:00:00Z`)) / 86400000)
+            ).filter(days => days > 0);
+            const lastDate = uniqueDates.at(-1) || '';
+            const monthsSince = lastDate ? monthIndex(currentMonthKey) - monthIndex(lastDate.slice(0, 7)) : null;
+            const activeMonths = new Set(rows.filter(t => last6Set.has(t.date.slice(0, 7))).map(t => t.date.slice(0, 7))).size;
+            let status = '履歴確認';
+            let statusClass = '';
+            if (monthsSince === 0) {
+                status = '今月あり'; statusClass = 'continuity-status-current';
+            } else if (monthsSince === 1) {
+                status = '前月あり';
+            } else if (monthsSince !== null && monthsSince >= 2) {
+                status = `${monthsSince}ヶ月なし`; statusClass = 'continuity-status-gap';
+            }
+            return { service, lastDate, activeMonths, medianGap: median(gaps), status, statusClass, monthsSince };
+        }).sort((a, b) => {
+            const aGap = a.monthsSince === null ? -1 : a.monthsSince;
+            const bGap = b.monthsSince === null ? -1 : b.monthsSince;
+            return bGap - aGap || a.service.localeCompare(b.service, 'ja');
+        });
 
-        // シナリオのベースペースを直近3ヶ月ライフスタイル平均で自動更新
-        const baseEl = document.getElementById('scenario-base');
-        if (baseEl) baseEl.value = Math.round(getPaceRange().low);
+        const categoryColors = {
+            '航空': 'var(--jal-blue)',
+            'ライフスタイルサービス': 'var(--jal-green)',
+            'その他': 'var(--prediction-orange)'
+        };
+        const categoryBars = Object.entries(categoryTotals)
+            .sort(([, a], [, b]) => b - a)
+            .map(([category, points]) => {
+                const share = grandTotal ? Math.round(points / grandTotal * 100) : 0;
+                return `
+                    <div style="display:grid; grid-template-columns:120px 1fr auto; align-items:center; gap:0.75rem; margin-bottom:0.5rem;">
+                        <span style="font-size:0.82rem;font-weight:500;">${escapeBulkHtml(category)}</span>
+                        <div style="background:var(--border-color);border-radius:4px;height:8px;overflow:hidden;">
+                            <div style="width:${Math.max(0, share)}%;height:100%;background:${categoryColors[category] || '#94a3b8'};border-radius:4px;"></div>
+                        </div>
+                        <span style="font-size:0.82rem;font-weight:700;color:var(--jal-red);white-space:nowrap;">${points.toLocaleString()} LSP・${share}%</span>
+                    </div>`;
+            }).join('');
 
-        // カテゴリ別バー
-        const catColors = { '航空': 'var(--jal-blue)', 'ライフスタイルサービス': 'var(--jal-green)', 'その他': 'var(--prediction-orange)' };
-        const catBars = Object.entries(catTotals)
-            .sort(([,a],[,b]) => b - a)
-            .map(([cat, pts]) => `
-                <div style="display:grid; grid-template-columns: 120px 1fr auto; align-items:center; gap:0.75rem; margin-bottom:0.5rem;">
-                    <span style="font-size:0.82rem; font-weight:500;">${cat}</span>
-                    <div style="background:var(--border-color); border-radius:4px; height:8px; overflow:hidden;">
-                        <div style="width:${Math.round(pts/grandTotal*100)}%; height:100%; background:${catColors[cat] || '#94a3b8'}; border-radius:4px;"></div>
-                    </div>
-                    <span style="font-size:0.82rem; font-weight:700; color:var(--jal-red); white-space:nowrap;">${pts} LSP</span>
-                </div>
-            `).join('');
-
-        grid.innerHTML = `
+        summary.innerHTML = `
             <div class="analysis-row">
                 <div class="analysis-stat">
-                    <div class="analysis-stat-label">月平均獲得</div>
-                    <div class="analysis-stat-value">${avgMonthly} <span>LSP</span></div>
-                    <div class="analysis-stat-note">${months.length}ヶ月分の実績平均</div>
+                    <div class="analysis-stat-label">直近3完了月の月平均</div>
+                    <div class="analysis-stat-value">${recent3Average.toLocaleString()} <span>LSP/月</span></div>
+                    <div class="analysis-stat-note">${recent3Keys.map(formatMonth).join('・')}</div>
+                </div>
+                <div class="analysis-stat">
+                    <div class="analysis-stat-label">前3ヶ月比</div>
+                    <div class="analysis-stat-value" style="color:${trendColor}">${trendText}</div>
+                    <div class="analysis-stat-note">${previous3Sum.toLocaleString()} → ${recent3Sum.toLocaleString()} LSP</div>
                 </div>
                 <div class="analysis-stat">
                     <div class="analysis-stat-label">最高獲得月</div>
-                    <div class="analysis-stat-value">${bestMonthPts} <span>LSP</span></div>
-                    <div class="analysis-stat-note">${bestMonth ? bestMonth.replace('-', '年') + '月' : '-'}</div>
+                    <div class="analysis-stat-value">${bestMonthPoints.toLocaleString()} <span>LSP</span></div>
+                    <div class="analysis-stat-note">${bestMonth ? formatMonth(bestMonth) : '-'}</div>
                 </div>
                 <div class="analysis-stat">
-                    <div class="analysis-stat-label">直近3ヶ月トレンド</div>
-                    <div class="analysis-stat-value" style="color:${trendColor}">${trendText}</div>
-                    <div class="analysis-stat-note">${prev3Sum} → ${recent3Sum} LSP（前3ヶ月比）</div>
-                </div>
-            </div>
-
-            <div class="analysis-two-col">
-                <div>
-                    <div class="analysis-section-title">📊 累計獲得 TOP5 サービス</div>
-                    <div class="analysis-rank-list" style="margin-top:0.75rem;">
-                        ${topServices.map(([svc, pts], i) => `
-                            <div class="analysis-rank-item">
-                                <span class="rank-badge rank-${Math.min(i+1,3)}" style="${i>=3?'background:var(--bg-tertiary);color:var(--text-secondary);':''}">${i+1}</span>
-                                <span class="rank-service">${svc}</span>
-                                <span class="rank-points">${pts} LSP</span>
-                                <div class="rank-bar-wrap">
-                                    <div class="rank-bar" style="width:${Math.round(pts/topServices[0][1]*100)}%"></div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                <div>
-                    <div class="analysis-section-title">🏷️ カテゴリ別内訳</div>
-                    <div style="margin-top:0.75rem;">${catBars}</div>
-                    ${unusedRecently.length > 0 ? `
-                        <div class="analysis-section-title" style="margin-top:1rem;">💡 直近3ヶ月未使用（活用余地あり）</div>
-                        <div class="analysis-unused" style="margin-top:0.5rem;">
-                            ${unusedRecently.map(s => `<span class="unused-badge">${s}</span>`).join('')}
-                        </div>
-                    ` : `<div class="analysis-section-title" style="margin-top:1rem;">✅ 直近3ヶ月でほぼ全サービス利用中</div>`}
+                    <div class="analysis-stat-label">直近3ヶ月の継続サービス</div>
+                    <div class="analysis-stat-value">${activeLifestyleCount}<span> / ${regularLifestyleServices.length}サービス</span></div>
+                    <div class="analysis-stat-note">定期型ライフスタイルサービス</div>
                 </div>
             </div>
         `;
+
+        grid.innerHTML = `
+            <div class="analysis-card">
+                <div class="analysis-section-title">📈 直近6ヶ月のカテゴリ別獲得推移</div>
+                <div class="analysis-method">月ごとの航空・ライフスタイル・その他を積み上げ表示。${formatMonth(currentMonthKey)}は途中経過（${currentMonthLatestDate ? `最終積算日 ${formatDate(currentMonthLatestDate)}` : '積算記録なし'}）。</div>
+                <div class="analysis-chart-container"><canvas id="monthlyCategoryChart"></canvas></div>
+            </div>
+
+            <div class="analysis-two-col">
+                <div class="analysis-card">
+                    <div class="analysis-section-title">📊 累計獲得 TOP5 サービス</div>
+                    <div class="analysis-rank-list" style="margin-top:0.75rem;">
+                        ${topServices.map(([service, points], index) => `
+                            <div class="analysis-rank-item">
+                                <span class="rank-badge rank-${Math.min(index + 1, 3)}" style="${index >= 3 ? 'background:var(--bg-secondary);color:var(--text-secondary);' : ''}">${index + 1}</span>
+                                <span class="rank-service">${escapeBulkHtml(service)}</span>
+                                <span class="rank-points">${points.toLocaleString()} LSP</span>
+                                <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.max(0, Math.round(points / topServiceMax * 100))}%"></div></div>
+                            </div>`).join('')}
+                    </div>
+                </div>
+                <div class="analysis-card">
+                    <div class="analysis-section-title">🏷️ 累計カテゴリ構成</div>
+                    <div style="margin-top:0.75rem;">${categoryBars}</div>
+                    <div class="analysis-method">繰越・FOP調整・2024年までの一括累積を除く ${grandTotal.toLocaleString()} LSP が対象。</div>
+                </div>
+            </div>
+
+            <div class="analysis-card">
+                <div class="analysis-section-title">🔎 サービス別実績</div>
+                <div class="analysis-method">累計寄与、獲得回数、1回平均、直近3つの完了月、最終積算日を同じ粒度で比較。</div>
+                <div class="analysis-table-wrap">
+                    <table class="analysis-detail-table">
+                        <thead><tr><th>サービス</th><th>カテゴリー</th><th>獲得回数</th><th>累計</th><th>1回平均</th><th>直近3完了月</th><th>構成比</th><th>最終積算日</th></tr></thead>
+                        <tbody>${serviceDetails.map(item => {
+                            const average = item.count ? Math.round(item.total / item.count * 10) / 10 : 0;
+                            const share = grandTotal ? Math.round(item.total / grandTotal * 1000) / 10 : 0;
+                            return `<tr>
+                                <td>${escapeBulkHtml(item.service)}</td><td>${escapeBulkHtml(item.category)}</td>
+                                <td>${item.count.toLocaleString()}回</td><td>${item.total.toLocaleString()} LSP</td>
+                                <td>${average.toLocaleString()} LSP</td><td>${item.recent3.toLocaleString()} LSP</td>
+                                <td>${share.toLocaleString()}%</td><td>${formatDate(item.lastDate)}</td>
+                            </tr>`;
+                        }).join('')}</tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="analysis-card">
+                <div class="analysis-section-title">🗓️ 定期サービスの継続状況</div>
+                <div class="analysis-method">ライフスタイルサービスの積算履歴を月単位で確認。半年周期のNEOBANKは除外し、「なし」は未利用の断定ではなく積算記録がない状態。</div>
+                <div class="continuity-grid">
+                    ${continuity.length ? continuity.map(item => `
+                        <div class="continuity-item">
+                            <div class="continuity-head">
+                                <span class="continuity-service">${escapeBulkHtml(item.service)}</span>
+                                <span class="continuity-status ${item.statusClass}">${escapeBulkHtml(item.status)}</span>
+                            </div>
+                            <div class="continuity-meta">最終 ${formatDate(item.lastDate)} ／ 直近6ヶ月で${item.activeMonths}ヶ月<br>積算間隔の中央値 ${item.medianGap === null ? '算出不可' : `${item.medianGap}日`}</div>
+                        </div>`).join('') : '<div class="analysis-empty">対象サービスがありません。</div>'}
+                </div>
+            </div>
+        `;
+
+        if (charts.monthlyCategory) charts.monthlyCategory.destroy();
+        const categoryChart = document.getElementById('monthlyCategoryChart');
+        if (categoryChart) {
+            charts.monthlyCategory = new Chart(categoryChart.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: last6Keys.map(key => `${Number(key.slice(5))}月${key === currentMonthKey ? '*' : ''}`),
+                    datasets: [
+                        { label: '航空', data: last6Keys.map(key => monthlyCategoryMap[key]?.['航空'] || 0), backgroundColor: '#174a7e' },
+                        { label: 'ライフスタイル', data: last6Keys.map(key => monthlyCategoryMap[key]?.['ライフスタイルサービス'] || 0), backgroundColor: '#008a5b' },
+                        { label: 'その他', data: last6Keys.map(key => monthlyCategoryMap[key]?.['その他'] || 0), backgroundColor: '#f59e0b' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: 'LSP' } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 10 } },
+                        tooltip: { callbacks: { label: context => `${context.dataset.label}: ${context.raw.toLocaleString()} LSP` } }
+                    }
+                }
+            });
+        }
+
+        // シナリオのベースペースは既存定義（直近3ヶ月ライフスタイル平均）を維持。
+        const baseEl = document.getElementById('scenario-base');
+        if (baseEl) baseEl.value = Math.round(getPaceRange().low);
     };
 
     const showNotification = (message, type = 'success') => {
