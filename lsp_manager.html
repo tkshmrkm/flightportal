@@ -1083,6 +1083,20 @@
             </div>
         </div>
 
+        <details id="cloud-settings" style="margin:12px 0;padding:16px;border:1px solid #9ca3af;border-radius:12px;">
+            <summary style="cursor:pointer;font-weight:700;">クラウド保存の初期設定・接続設定</summary>
+            <p>この端末・ブラウザーで初めて使うときは、保存先URLとAPIキーを入力してください。設定はこのブラウザーに保存されます。別の端末・ブラウザーや、ブラウザーデータを削除した場合は再設定が必要です。</p>
+            <p id="cloud-key-state"></p>
+            <form id="cloud-settings-form" style="display: grid; gap: 8px; margin-top: 8px;">
+                <label>保存先URL（Cloudflare Worker）<input id="cloud-url" type="url" required placeholder="https://…workers.dev" style="display:block;width:100%;box-sizing:border-box;padding:12px;font-size:16px;border:1px solid #9ca3af;border-radius:8px;"></label>
+                <label>APIキー <input id="cloud-key" type="password" autocomplete="off" spellcheck="false" autocapitalize="none" placeholder="Workerに設定したAPIキーを入力" style="display:block;width:100%;box-sizing:border-box;padding:12px;font-size:16px;border:1px solid #9ca3af;border-radius:8px;"></label>
+                <label><input id="cloud-key-visible" type="checkbox"> 入力したAPIキーを表示</label>
+                <button id="cloud-connect" type="submit" class="btn btn-primary">接続を確認して設定を保存</button>
+                <button type="button" class="btn btn-outline" onclick="window.app.retryCloudSave()">この端末のデータをクラウドへ再保存</button>
+            </form>
+        </details>
+        <p id="cloud-status" role="status" style="overflow-wrap:anywhere;margin:8px 0 16px;">クラウド接続を確認中…</p>
+
         <!-- ② 予測サマリーバー -->
         <div class="prediction-summary-bar">
             <div class="psb-item">
@@ -1391,20 +1405,95 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===== Cloudflare Worker =====
     // 接続先とAPIキーはコードに書かない(ブラウザで動くコードは誰でも中身を読める)。
     // 初回だけ入力し、以降は localStorage から読む。別の端末では再入力になる。
-    const API_URL = localStorage.getItem('lsp_api_url')
-        || (() => { const v = prompt('Cloudflare Worker のURLを入力してください'); if (v) localStorage.setItem('lsp_api_url', v); return v; })();
-    const API_KEY = localStorage.getItem('lsp_api_key')
-        || (() => { const v = prompt('APIキーを入力してください'); if (v) localStorage.setItem('lsp_api_key', v); return v; })();
+    const cloudStatus = (message) => {
+        document.getElementById('cloud-status').textContent = message;
+    };
+    const cloudConfig = () => {
+        const url = (localStorage.getItem('lsp_api_url') || '').trim();
+        const key = (localStorage.getItem('lsp_api_key') || '').trim();
+        if (!url || !key) throw new Error('クラウド設定でWorker URLとAPIキーを入力してください');
+        let parsed;
+        try { parsed = new URL(url); } catch { throw new Error('Worker URLが正しくありません'); }
+        if (parsed.protocol !== 'https:' || parsed.username || parsed.password) throw new Error('Worker URLには認証情報を含まないHTTPS URLを指定してください');
+        return { url, key };
+    };
+    const cloudRequest = async (options = {}) => {
+        const { url, key } = cloudConfig();
+        const response = await fetch(url, {
+            ...options,
+            headers: { ...options.headers, 'X-Api-Key': key }
+        });
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) document.getElementById('cloud-settings').open = true;
+            const reasons = {
+                401: '認証に失敗しました。APIキーを確認してください',
+                403: 'アクセスが拒否されました。APIキーとWorkerのアクセス制限を確認してください',
+                404: '保存先が見つかりません。Worker URLを確認してください',
+                405: '保存先がこの通信方法に対応していません。Worker URLと処理を確認してください',
+                429: '利用制限に達しました。時間をおいて再試行してください'
+            };
+            throw new Error('HTTP ' + response.status + ': ' + (reasons[response.status] || '保存先でエラーが発生しました。Workerのログを確認してください'));
+        }
+        return response;
+    };
+    const cloudError = (error) => error instanceof TypeError
+        ? '通信に失敗しました。接続先・ネットワーク・WorkerのCORS設定を確認してください'
+        : error.message;
+    const refreshCloudSetup = () => {
+        const saved = !!(localStorage.getItem('lsp_api_key') || '').trim();
+        document.getElementById('cloud-key-state').textContent = saved
+            ? 'このブラウザーにはAPIキーが保存されています。変更しない場合は空欄のまま確認できます。'
+            : 'APIキーは未設定です。下の入力欄に入力してください。';
+        document.getElementById('cloud-key').required = !saved;
+    };
+    refreshCloudSetup();
+    document.getElementById('cloud-settings').open = !(localStorage.getItem('lsp_api_url') && localStorage.getItem('lsp_api_key'));
+    document.getElementById('cloud-url').value = localStorage.getItem('lsp_api_url') || '';
+    document.getElementById('cloud-key-visible').addEventListener('change', (event) => {
+        document.getElementById('cloud-key').type = event.target.checked ? 'text' : 'password';
+    });
+    document.getElementById('cloud-settings-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const url = document.getElementById('cloud-url').value.trim();
+        const keyInput = document.getElementById('cloud-key');
+        const oldUrl = (localStorage.getItem('lsp_api_url') || '').trim();
+        const key = keyInput.value.trim() || (url === oldUrl ? (localStorage.getItem('lsp_api_key') || '').trim() : '');
+        const button = document.getElementById('cloud-connect');
+        try {
+            let parsed;
+            try { parsed = new URL(url); } catch { throw new Error('正しい保存先URLを入力してください'); }
+            if (parsed.protocol !== 'https:' || parsed.username || parsed.password) throw new Error('保存先には認証情報を含まないHTTPS URLを入力してください');
+            if (!key) throw new Error('この保存先のAPIキーを入力してください');
+            button.disabled = true;
+            cloudStatus('接続を確認中…');
+            const response = await fetch(url, { headers: { 'X-Api-Key': key }, signal: AbortSignal.timeout(15000) });
+            if (!response.ok) throw new Error('HTTP ' + response.status + (response.status === 401 || response.status === 403
+                ? ': 認証が拒否されました。Worker側のAPIキーと入力内容を確認してください'
+                : ': 接続できません。保存先URLとWorkerの状態を確認してください'));
+            if (!Array.isArray(await response.json())) throw new Error('保存先の応答形式が正しくありません。URLを確認してください');
+            localStorage.setItem('lsp_api_url', url);
+            localStorage.setItem('lsp_api_key', key);
+            keyInput.value = '';
+            keyInput.type = 'password';
+            document.getElementById('cloud-key-visible').checked = false;
+            refreshCloudSetup();
+            cloudStatus('接続確認済み。このブラウザーに設定を保存しました。データはまだ送信していません。端末内のデータを保存する場合は「再保存」を押してください');
+        } catch (e) {
+            cloudStatus('設定を保存できませんでした: ' + (e.name === 'TimeoutError' ? '接続がタイムアウトしました' : cloudError(e)));
+        } finally {
+            button.disabled = false;
+        }
+    });
+    app.retryCloudSave = () => saveData();
 
     const loadData = async () => {
         try {
-            const response = await fetch(API_URL, {
-                method: 'GET',
-                headers: { 'X-Api-Key': API_KEY }
-            });
+            const response = await cloudRequest({ method: 'GET' });
 
             if (response.ok) {
                 const data = await response.json();
+                if (!Array.isArray(data)) throw new Error('保存先から想定外のデータが返りました。Worker URLを確認してください');
+                cloudStatus('クラウドから読み込みました');
                 if (data && data.length > 0) {
                     // 正規化を適用してから格納
                     const normalized = data.map(normalizeTransaction);
@@ -1437,7 +1526,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadFromLocal();
             }
         } catch (e) {
-            console.error('通信エラー:', e);
+            cloudStatus('クラウド読込失敗: ' + cloudError(e) + '。ローカルデータを表示します');
             loadFromLocal();
         }
         filteredTransactions = [...transactions];
@@ -1452,24 +1541,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const saveData = async () => {
         localStorage.setItem('jalLspTransactions', JSON.stringify(transactions));
+        cloudStatus('端末内に保存済み。クラウドへ保存中…');
         try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Api-Key": API_KEY
-                },
+            await cloudRequest({
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(transactions)
             });
-            if (response.ok) {
-                console.log('クラウド保存完了');
-            } else {
-                console.warn('クラウド保存失敗');
-                showNotification('クラウドへの保存に失敗しました', 'error');
-            }
+            cloudStatus('クラウド保存完了');
         } catch (e) {
-            console.error(e);
-            showNotification('通信エラー: クラウドに保存できませんでした', 'error');
+            cloudStatus('端末内に保存済み／クラウド保存失敗: ' + cloudError(e));
         }
     };
 
