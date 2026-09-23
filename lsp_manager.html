@@ -2036,16 +2036,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateTable = () => {
         const tbody = document.getElementById('history-body');
         tbody.innerHTML = '';
-        const sorted = [...filteredTransactions].sort((a, b) => {
+        const compare = (a, b) => {
             const aVal = getSortValue(a, sortOrder.column);
             const bVal = getSortValue(b, sortOrder.column);
-            return sortOrder.direction === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
-        });
+            if (aVal > bVal) return sortOrder.direction === 'asc' ? 1 : -1;
+            if (aVal < bVal) return sortOrder.direction === 'asc' ? -1 : 1;
+            return new Date(b.date) - new Date(a.date);  // 同値は新しい日付を先に
+        };
 
-        // 月ごとにグループ化（ソート順を保持）
-        const monthKeys = [...new Set(sorted.map(t => t.date.slice(0, 7)))];
+        // 月ごとにグループ化し、並べ替えは各月の中で行う
         const byMonth = {};
-        sorted.forEach(t => { const k = t.date.slice(0, 7); (byMonth[k] = byMonth[k] || []).push(t); });
+        filteredTransactions.forEach(t => { const k = t.date.slice(0, 7); (byMonth[k] = byMonth[k] || []).push(t); });
+        Object.values(byMonth).forEach(txs => txs.sort(compare));
+        // 月の並び: ポイント列なら月合計LSP順、積算日列ならその向き、ほかは新しい月から
+        const monthTotal = k => byMonth[k].reduce((sum, t) => sum + t.points, 0);
+        const monthKeys = Object.keys(byMonth).sort().reverse();
+        if (sortOrder.column === 4) {
+            const dir = sortOrder.direction === 'asc' ? 1 : -1;
+            monthKeys.sort((a, b) => (monthTotal(a) - monthTotal(b)) * dir || b.localeCompare(a));
+        } else if (sortOrder.column === 0 && sortOrder.direction === 'asc') {
+            monthKeys.reverse();
+        }
 
         monthKeys.forEach((mk, idx) => {
             const txs   = byMonth[mk];
