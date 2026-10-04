@@ -280,15 +280,27 @@
             padding: 0 1rem;
         }
         .achievements:empty { display: none; }
-        .status-banners {
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem;
-            width: 100%; max-width: 760px;
+        /* 公式バナー(750x145)から左端のエンブレム(約122px四方, 左8px・上12px)だけを切り出して横一列に並べる */
+        .status-emblems { --emblem: 60px; display: flex; gap: 0.5rem; justify-content: center; }
+        .status-emblem {
+            display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+            width: var(--emblem); color: #fff; text-decoration: none;
         }
-        .status-banner { display: block; flex: 0 1 300px; line-height: 0; }
-        .status-banner img { width: 100%; height: auto; border-radius: 6px; box-shadow: var(--shadow-md); }
-        .status-banner-text {
-            display: block; padding: 0.6rem 1rem; border-radius: 6px;
-            background: #fff; color: #333; font-weight: 700; line-height: 1.4;
+        .status-emblem-crop {
+            position: relative; overflow: hidden; width: var(--emblem); height: var(--emblem);
+            background: #fff; border-radius: 10px; box-shadow: var(--shadow-md);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .status-emblem-crop img {
+            position: absolute; max-width: none;
+            width: calc(var(--emblem) * 750 / 122); height: auto;
+            left: calc(var(--emblem) * -8 / 122); top: calc(var(--emblem) * -12 / 122);
+        }
+        .status-emblem-text { color: #333; font-size: 0.6rem; font-weight: 700; line-height: 1.1; text-align: center; }
+        .status-emblem-name { font-size: 0.6rem; line-height: 1.15; text-align: center; white-space: nowrap; opacity: 0.95; }
+        @media (max-width: 480px) {
+            .status-emblems { --emblem: 42px; gap: 0.3rem; }
+            .status-emblem-name { font-size: 0.55rem; }
         }
         .achievement-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
 
@@ -1413,12 +1425,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const STAR_GRADE_PAGE = 'https://www.jal.co.jp/jp/ja/jmb/lsp/star-grade/status/';
     const STAR_GRADE_IMG = n => `${STAR_GRADE_PAGE}img_sites/bnr_light_0${n}_sp.jpg`;
     const STAR_GRADES = [
-        { points: 250, name: 'JMB elite', img: STAR_GRADE_IMG(1) },
-        { points: 500, name: 'JMB elite plus', img: STAR_GRADE_IMG(2) },
-        { points: 1500, name: 'JGC Three Star', img: STAR_GRADE_IMG(3) },
-        { points: 3000, name: 'JGC Four Star', img: STAR_GRADE_IMG(4) },
-        { points: 6000, name: 'JGC Five Star', img: STAR_GRADE_IMG(5) },
-        { points: 12000, name: 'JGC Six Star', img: STAR_GRADE_IMG(6) },
+        { points: 250, name: 'JMB elite', short: 'elite', img: STAR_GRADE_IMG(1) },
+        { points: 500, name: 'JMB elite plus', short: 'elite plus', img: STAR_GRADE_IMG(2) },
+        { points: 1500, name: 'JGC Three Star', short: 'Three Star', img: STAR_GRADE_IMG(3) },
+        { points: 3000, name: 'JGC Four Star', short: 'Four Star', img: STAR_GRADE_IMG(4) },
+        { points: 6000, name: 'JGC Five Star', short: 'Five Star', img: STAR_GRADE_IMG(5) },
+        { points: 12000, name: 'JGC Six Star', short: 'Six Star', img: STAR_GRADE_IMG(6) },
     ];
 
     const categoryClassMap = {
@@ -2015,16 +2027,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateAchievements = () => {
         const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
         const reached = STAR_GRADES.filter(g => totalPoints >= g.points);
-        // 到達した等級を上位から順に並べる（等級が上がるたびに1枚ずつ増える）
-        const banners = reached.slice().reverse().map(g => {
-            // 公式画像が読めない場合は等級名の文字表示に切り替える
+        // 到達した等級を下位から順に左→右へ並べる（等級が上がるたびに右へ1個ずつ増える）
+        const emblems = reached.map(g => {
+            // 公式画像が読めない場合は枠内を等級名の文字表示に切り替える
             const label = `${g.name}（${g.points.toLocaleString()} LSP）到達`;
-            return `<a class="status-banner" href="${STAR_GRADE_PAGE}" target="_blank" rel="noopener" title="${label}">
-                <img src="${g.img}" alt="${label}" referrerpolicy="no-referrer"
-                     onerror="this.replaceWith(Object.assign(document.createElement('span'), { className: 'status-banner-text', textContent: '🎯 ${label}' }))">
+            return `<a class="status-emblem" href="${STAR_GRADE_PAGE}" target="_blank" rel="noopener" title="${label}">
+                <span class="status-emblem-crop">
+                    <img src="${g.img}" alt="${label}" referrerpolicy="no-referrer"
+                         onerror="this.replaceWith(Object.assign(document.createElement('span'), { className: 'status-emblem-text', textContent: '${g.short}' }))">
+                </span>
+                <span class="status-emblem-name">${g.short}</span>
             </a>`;
         }).join('');
-        let html = banners ? `<div class="status-banners">${banners}</div>` : '';
+        let html = emblems ? `<div class="status-emblems">${emblems}</div>` : '';
         const recentLifestyle = transactions.filter(t => new Date(t.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) && t.category === 'ライフスタイルサービス');
         if (recentLifestyle.length >= 10) html += '<div class="achievement-chips"><div class="achievement">🔥 月間10回利用達成</div></div>';
         document.getElementById('achievements').innerHTML = html;
