@@ -296,6 +296,8 @@
             width: calc(var(--emblem) * 750 / 122); height: auto;
             left: calc(var(--emblem) * -8 / 122); top: calc(var(--emblem) * -12 / 122);
         }
+        .status-emblem.is-locked .status-emblem-crop { filter: grayscale(1); opacity: 0.45; box-shadow: none; }
+        .status-emblem.is-locked .status-emblem-name { opacity: 0.55; }
         .status-emblem-text { color: #333; font-size: 0.6rem; font-weight: 700; line-height: 1.1; text-align: center; }
         .status-emblem-name { font-size: 0.6rem; line-height: 1.15; text-align: center; white-space: nowrap; opacity: 0.95; }
         @media (max-width: 480px) {
@@ -2026,12 +2028,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateAchievements = () => {
         const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
-        const reached = STAR_GRADES.filter(g => totalPoints >= g.points);
-        // 到達した等級を下位から順に左→右へ並べる（等級が上がるたびに右へ1個ずつ増える）
-        const emblems = reached.map(g => {
+        // 全等級を下位から順に左→右へ並べ、未到達はグレー表示（到達するたびに右へ1個ずつ色が付く）
+        const emblems = STAR_GRADES.map(g => {
+            const isReached = totalPoints >= g.points;
             // 公式画像が読めない場合は枠内を等級名の文字表示に切り替える
-            const label = `${g.name}（${g.points.toLocaleString()} LSP）到達`;
-            return `<a class="status-emblem" href="${STAR_GRADE_PAGE}" target="_blank" rel="noopener" title="${label}">
+            const label = isReached
+                ? `${g.name}（${g.points.toLocaleString()} LSP）到達`
+                : `${g.name}（${g.points.toLocaleString()} LSP）まであと ${(g.points - totalPoints).toLocaleString()} LSP`;
+            return `<a class="status-emblem${isReached ? '' : ' is-locked'}" href="${STAR_GRADE_PAGE}" target="_blank" rel="noopener" title="${label}">
                 <span class="status-emblem-crop">
                     <img src="${g.img}" alt="${label}" referrerpolicy="no-referrer"
                          onerror="this.replaceWith(Object.assign(document.createElement('span'), { className: 'status-emblem-text', textContent: '${g.short}' }))">
