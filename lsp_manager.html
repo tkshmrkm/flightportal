@@ -1266,7 +1266,7 @@
                 <div class="psb-value"><span id="current-points">0</span> LSP</div>
             </div>
             <div class="psb-item">
-                <div class="psb-label">次の目標 <span id="next-milestone-value">1,500</span> LSP まであと</div>
+                <div class="psb-label">次の目標 <span id="next-milestone-grade">JGC Three Star</span>（<span id="next-milestone-value">1,500</span> LSP）まであと</div>
                 <div class="psb-value psb-remaining"><span id="next-milestone-remaining">---</span> LSP</div>
             </div>
             <div class="psb-item">
@@ -1403,7 +1403,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let sortOrder = { column: 0, direction: 'desc' };
     let bulkImportPlan = null;
 
-    const MILESTONE_STEP = 1500;
+    // JAL公式のStar グレード基準（2026-10-04 jal.co.jp/jp/ja/jmb/lsp/ で確認）
+    const STAR_GRADES = [
+        { points: 250, name: 'JMB elite' },
+        { points: 500, name: 'JMB elite plus' },
+        { points: 1500, name: 'JGC Three Star' },
+        { points: 3000, name: 'JGC Four Star' },
+        { points: 6000, name: 'JGC Five Star' },
+        { points: 12000, name: 'JGC Six Star' },
+    ];
 
     const categoryClassMap = {
         '航空': 'koukuu',
@@ -1753,13 +1761,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ===== マイルストーン計算 =====
 
-    const getNextMilestone = (current) => {
-        return Math.ceil(Math.max(current + 1, MILESTONE_STEP) / MILESTONE_STEP) * MILESTONE_STEP;
-    };
+    // 次に到達するStar グレード（最上位到達後は最上位を返す）
+    const getNextGrade = (current) =>
+        STAR_GRADES.find(g => g.points > current) || STAR_GRADES[STAR_GRADES.length - 1];
 
-    const getPrevMilestone = (current) => {
-        return Math.floor(current / MILESTONE_STEP) * MILESTONE_STEP;
-    };
+    const getNextMilestone = (current) => getNextGrade(current).points;
 
     // ===== 予測: ライフスタイルサービスの直近3か月平均 + 国内線1往復(10LSP) =====
     // ※「その他」カテゴリ（キャンペーン等の一時的ボーナス）は含めない
@@ -1800,14 +1806,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateSummary = () => {
         const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
-        const nextTarget = getNextMilestone(totalPoints);
-        const prevTarget = getPrevMilestone(totalPoints);
-        const needed = nextTarget - totalPoints;
-
-        // ドーナツは「現マイルストーン区間内」の進捗を表示
-        const rangePoints = totalPoints - prevTarget;
-        const rangeTotal = nextTarget - prevTarget;
-        const percentage = (rangePoints / rangeTotal) * 100;
+        const nextGrade = getNextGrade(totalPoints);
+        const nextTarget = nextGrade.points;
+        const needed = Math.max(0, nextTarget - totalPoints);
 
         const now = new Date();
         const currentMonthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
@@ -1819,6 +1820,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('current-month-points').textContent = currentMonthPoints;
 
         // 次の目標表示（予測サマリーバー）
+        document.getElementById('next-milestone-grade').textContent = nextGrade.name;
         document.getElementById('next-milestone-value').textContent = nextTarget.toLocaleString();
         document.getElementById('next-milestone-remaining').textContent = needed.toLocaleString();
 
@@ -2005,7 +2007,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateAchievements = () => {
         const achievements = [];
         const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
-        [100, 250, 500, 750, 1000, 1250, 1500].forEach(m => { if (totalPoints >= m) achievements.push(`🎯 ${m} LSP達成`); });
+        STAR_GRADES.forEach(g => { if (totalPoints >= g.points) achievements.push(`🎯 ${g.name}（${g.points.toLocaleString()} LSP）到達`); });
         const recentLifestyle = transactions.filter(t => new Date(t.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) && t.category === 'ライフスタイルサービス');
         if (recentLifestyle.length >= 10) achievements.push('🔥 月間10回利用達成');
         document.getElementById('achievements').innerHTML = achievements.slice(-3).map(a => `<div class="achievement">${a}</div>`).join('');
