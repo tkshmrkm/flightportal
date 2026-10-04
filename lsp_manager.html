@@ -270,30 +270,35 @@
             margin-left: 0.25rem;
         }
 
-        /* Achievements */
+        /* Achievements（ヘッダー内の到達ステータス） */
         .achievements {
             display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
             margin-top: 1rem;
+            padding: 0 1rem;
         }
+        .achievements:empty { display: none; }
+        .status-banners {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem;
+            width: 100%; max-width: 760px;
+        }
+        .status-banner { display: block; flex: 0 1 300px; line-height: 0; }
+        .status-banner img { width: 100%; height: auto; border-radius: 6px; box-shadow: var(--shadow-md); }
+        .status-banner-text {
+            display: block; padding: 0.6rem 1rem; border-radius: 6px;
+            background: #fff; color: #333; font-weight: 700; line-height: 1.4;
+        }
+        .achievement-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center; }
 
         .achievement {
-            padding: 0.5rem 1rem;
+            padding: 0.25rem 0.7rem;
             background: var(--jal-gold);
             color: #333;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            animation: sparkle 2s ease-in-out infinite;
-        }
-
-        @keyframes sparkle {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
         }
 
         /* Filters */
@@ -1222,6 +1227,7 @@
     <div class="container">
         <div class="header">
             <h1>JAL Life Status<br>ポイントトラッカー</h1>
+            <div class="achievements" id="achievements"></div>
         </div>
 
         <!-- ① クイック追加バー -->
@@ -1387,7 +1393,6 @@
                     <div id="scenario-result" style="display:none;"></div>
                     <div id="scenario-history"></div>
                 </div>
-                <div class="achievements" id="achievements" style="margin-top:0.75rem;"></div>
             </div>
         </details>
     </div>
@@ -1404,13 +1409,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let bulkImportPlan = null;
 
     // JAL公式のStar グレード基準（2026-10-04 jal.co.jp/jp/ja/jmb/lsp/ で確認）
+    // 画像は公式サイトを直接参照（リポジトリには含めない）
+    const STAR_GRADE_PAGE = 'https://www.jal.co.jp/jp/ja/jmb/lsp/star-grade/status/';
+    const STAR_GRADE_IMG = n => `${STAR_GRADE_PAGE}img_sites/bnr_light_0${n}_sp.jpg`;
     const STAR_GRADES = [
-        { points: 250, name: 'JMB elite' },
-        { points: 500, name: 'JMB elite plus' },
-        { points: 1500, name: 'JGC Three Star' },
-        { points: 3000, name: 'JGC Four Star' },
-        { points: 6000, name: 'JGC Five Star' },
-        { points: 12000, name: 'JGC Six Star' },
+        { points: 250, name: 'JMB elite', img: STAR_GRADE_IMG(1) },
+        { points: 500, name: 'JMB elite plus', img: STAR_GRADE_IMG(2) },
+        { points: 1500, name: 'JGC Three Star', img: STAR_GRADE_IMG(3) },
+        { points: 3000, name: 'JGC Four Star', img: STAR_GRADE_IMG(4) },
+        { points: 6000, name: 'JGC Five Star', img: STAR_GRADE_IMG(5) },
+        { points: 12000, name: 'JGC Six Star', img: STAR_GRADE_IMG(6) },
     ];
 
     const categoryClassMap = {
@@ -2005,12 +2013,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateAchievements = () => {
-        const achievements = [];
         const totalPoints = transactions.reduce((sum, t) => sum + t.points, 0);
-        STAR_GRADES.forEach(g => { if (totalPoints >= g.points) achievements.push(`🎯 ${g.name}（${g.points.toLocaleString()} LSP）到達`); });
+        const reached = STAR_GRADES.filter(g => totalPoints >= g.points);
+        // 到達した等級を上位から順に並べる（等級が上がるたびに1枚ずつ増える）
+        const banners = reached.slice().reverse().map(g => {
+            // 公式画像が読めない場合は等級名の文字表示に切り替える
+            const label = `${g.name}（${g.points.toLocaleString()} LSP）到達`;
+            return `<a class="status-banner" href="${STAR_GRADE_PAGE}" target="_blank" rel="noopener" title="${label}">
+                <img src="${g.img}" alt="${label}" referrerpolicy="no-referrer"
+                     onerror="this.replaceWith(Object.assign(document.createElement('span'), { className: 'status-banner-text', textContent: '🎯 ${label}' }))">
+            </a>`;
+        }).join('');
+        let html = banners ? `<div class="status-banners">${banners}</div>` : '';
         const recentLifestyle = transactions.filter(t => new Date(t.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) && t.category === 'ライフスタイルサービス');
-        if (recentLifestyle.length >= 10) achievements.push('🔥 月間10回利用達成');
-        document.getElementById('achievements').innerHTML = achievements.slice(-3).map(a => `<div class="achievement">${a}</div>`).join('');
+        if (recentLifestyle.length >= 10) html += '<div class="achievement-chips"><div class="achievement">🔥 月間10回利用達成</div></div>';
+        document.getElementById('achievements').innerHTML = html;
     };
 
     const applyFilters = () => {
