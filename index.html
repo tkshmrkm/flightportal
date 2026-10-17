@@ -19,6 +19,8 @@
     --local-soft: #fbf1dc;
     --private: #7a3b8c;
     --private-soft: #f1e6f5;
+    --secure: #1d6b45;
+    --secure-soft: #e1f2e8;
     --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
   }
   @media (prefers-color-scheme: dark) {
@@ -34,6 +36,8 @@
       --local-soft: #2e2615;
       --private: #d9a8ea;
       --private-soft: #2c1d33;
+      --secure: #7fd3a4;
+      --secure-soft: #17301f;
       --shadow: none;
     }
   }
@@ -49,6 +53,8 @@
     --local-soft: #2e2615;
     --private: #d9a8ea;
     --private-soft: #2c1d33;
+    --secure: #7fd3a4;
+    --secure-soft: #17301f;
     --shadow: none;
   }
   * { box-sizing: border-box; }
@@ -117,14 +123,17 @@
   }
   a.tool.local { border-style: dashed; }
   a.tool.local:hover { border-color: var(--local); }
-  a.tool.private { border-left: 4px solid var(--private); }
-  a.tool.private:hover { border-color: var(--private); }
-  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 16px 0 0; color: var(--muted); font-size: 0.85rem; align-items: center; }
+  .legend { margin: 16px 0 0; color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; }
+  .legend-row { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+  .legend-label { font-weight: 600; min-width: 5.5em; }
   .legend .tag { margin-right: 4px; }
   .tags { display: flex; flex-wrap: wrap; gap: 6px; }
   .tags .tag { align-self: auto; }
   .tag.pc { background: var(--local-soft); color: var(--local); }
-  .tag.private { background: var(--private-soft); color: var(--private); }
+  /* 置き場所の札は枠線だけにして、開ける場所の札と見分ける */
+  .tag.store { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 0 7px; }
+  .tag.store.repo { color: var(--private); border-color: var(--private); }
+  .tag.secure { background: var(--secure-soft); color: var(--secure); }
   body.hide-pc [data-scope~="pc"] { display: none; }
   body.hide-pc .group-empty { display: none; }
   .note { margin: 10px 0 0; color: var(--muted); font-size: 0.85rem; }
@@ -153,11 +162,16 @@
   <header>
     <h1>My Portal</h1>
     <p class="lead">出張・マイル・お金・調べものの入口</p>
-    <p class="legend" aria-label="札の見方">
-      <span><span class="tag">どこでも</span>どの端末でも開く</span>
-      <span><span class="tag pc">PCのみ</span>自宅のPCのサーバーで開く</span>
-      <span><span class="tag private">🔒 Private</span>非公開。公開されない</span>
-    </p>
+    <div class="legend" aria-label="札の見方">
+      <p class="legend-row"><span class="legend-label">開ける場所</span>
+        <span><span class="tag">どこでも</span>どの端末でも開く公開ページ</span>
+        <span><span class="tag pc">PCのみ</span>自宅のPCのサーバーで開く</span></p>
+      <p class="legend-row"><span class="legend-label">置き場所</span>
+        <span><span class="tag store repo">GitHub非公開</span>非公開リポジトリで管理</span>
+        <span><span class="tag store">Gitなし</span>自宅のPCのフォルダだけに置く</span></p>
+      <p class="legend-row"><span class="legend-label">保護</span>
+        <span><span class="tag secure">🔒 暗号化</span>パスワードを入れるまで中身を読めない</span></p>
+    </div>
   </header>
 
   <main>
@@ -169,10 +183,10 @@
           <p class="tool-desc">出張・イベントごとの旅程と資料の一覧</p>
           <span class="tags"><span class="tag">どこでも</span></span>
         </a>
-        <a class="tool private local" data-scope="pc private" href="http://localhost:8768/murakami_plan_2026_2027.html" rel="noopener noreferrer">
-          <span class="tool-name"><span class="icon" aria-hidden="true">🔒</span>個人の視察予定</span>
-          <p class="tool-desc">非公開リポジトリの中身。判断・カレンダー・見送り一覧</p>
-          <span class="tags"><span class="tag private">🔒 Private</span><span class="tag pc">PCのみ</span></span>
+        <a class="tool local" data-scope="pc" href="http://localhost:8768/murakami_plan_2026_2027.html" rel="noopener noreferrer">
+          <span class="tool-name"><span class="icon" aria-hidden="true">🗓️</span>個人の視察予定</span>
+          <p class="tool-desc">判断・カレンダー・見送り一覧</p>
+          <span class="tags"><span class="tag pc">PCのみ</span><span class="tag store repo">GitHub非公開</span></span>
         </a>
       </div>
     </section>
@@ -203,13 +217,13 @@
       <div class="grid">
         <a class="tool local" data-scope="pc" href="http://localhost:8765/" rel="noopener noreferrer">
           <span class="tool-name"><span class="icon" aria-hidden="true">💳</span>カード情報</span>
-          <p class="tool-desc">PCで常駐しているサーバーから開くページ</p>
-          <span class="tags"><span class="tag pc">PCのみ</span></span>
+          <p class="tool-desc">カード番号などをパスワードで暗号化して保存する</p>
+          <span class="tags"><span class="tag pc">PCのみ</span><span class="tag store">Gitなし</span><span class="tag secure">🔒 暗号化</span></span>
         </a>
         <a class="tool local" data-scope="pc" href="http://localhost:8767/" rel="noopener noreferrer">
           <span class="tool-name"><span class="icon" aria-hidden="true">🏠</span>家計・資産</span>
           <p class="tool-desc">家計・税金・資産のページを一覧から開く</p>
-          <span class="tags"><span class="tag pc">PCのみ</span></span>
+          <span class="tags"><span class="tag pc">PCのみ</span><span class="tag store">Gitなし</span></span>
         </a>
       </div>
     </section>
@@ -220,12 +234,12 @@
         <a class="tool local" data-scope="pc" href="http://localhost:8766/" rel="noopener noreferrer">
           <span class="tool-name"><span class="icon" aria-hidden="true">📚</span>自宅の資料</span>
           <p class="tool-desc">調べもの・カード戦略・出張・投資の分析などを一覧から開く</p>
-          <span class="tags"><span class="tag pc">PCのみ</span></span>
+          <span class="tags"><span class="tag pc">PCのみ</span><span class="tag store">Gitなし</span></span>
         </a>
       </div>
     </section>
 
-    <p class="note">PCのみの札のものは、自宅のPCのサーバーが動いていないと、開けません。スマートフォンやほかのPCでは、「PCのみを隠す」で見えなくできます。公開のポータルなので、Private のものは、リンク先を知っていても、本人のPCでしか開けません。非公開リポジトリは <a href="https://github.com/tkshmrkm/inspection-private" rel="noopener noreferrer">GitHub（要ログイン）</a>。</p>
+    <p class="note">PCのみのものは、自宅のPCでサーバーが動いているときだけ開けます。リンク先を知っていても、ほかの端末からは開けません。スマートフォンやほかのPCでは、「PCのみを隠す」で見えなくできます。GitHub非公開のものは <a href="https://github.com/tkshmrkm/inspection-private" rel="noopener noreferrer">非公開リポジトリ（要ログイン）</a> で管理しています。暗号化していないものは、PCの中ではそのまま読めるファイルです。</p>
   </main>
 
   <footer>
