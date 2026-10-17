@@ -121,7 +121,11 @@
   a.tool.private { border-left: 4px solid var(--private); }
   a.tool.private:hover { border-color: var(--private); }
   a.tool.private .tag { background: var(--private-soft); color: var(--private); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tags .tag { align-self: auto; }
+  a.tool.private.local .tag:last-child { background: var(--local-soft); color: var(--local); }
   .note { margin: 10px 0 0; color: var(--muted); font-size: 0.85rem; }
+  .note a { color: var(--accent); }
   footer {
     margin-top: 48px;
     display: flex;
@@ -193,13 +197,13 @@
     <section aria-labelledby="h-private">
       <h2 id="h-private">非公開（Private）</h2>
       <div class="grid">
-        <a class="tool private" href="https://github.com/tkshmrkm/inspection-private" rel="noopener noreferrer">
+        <a class="tool private local" href="http://localhost:8768/murakami_plan_2026_2027.html" rel="noopener noreferrer">
           <span class="tool-name"><span class="icon" aria-hidden="true">🔒</span>個人の視察予定</span>
-          <p class="tool-desc">非公開のGitHubリポジトリ。ログインした本人だけが開ける。ページの表示は、手元のPCで clone した HTML をブラウザで開く</p>
-          <span class="tag">🔒 Private</span>
+          <p class="tool-desc">非公開リポジトリの中身。PCで常駐しているサーバーから開くページ</p>
+          <span class="tags"><span class="tag">🔒 Private</span><span class="tag">PCのみ</span></span>
         </a>
       </div>
-      <p class="note">このポータルは公開です。Private の札が付いたものは、リンクを知っていても、本人のログインがないと開けません。</p>
+      <p class="note">このポータルは公開です。Private の札が付いたものは、リンクを知っていても、本人のPCのサーバーが動いていないと開けません。元のリポジトリは <a href="https://github.com/tkshmrkm/inspection-private" rel="noopener noreferrer">GitHub（要ログイン）</a>。</p>
     </section>
 
   </main>
