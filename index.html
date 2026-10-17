@@ -66,33 +66,49 @@
     line-height: 1.6;
   }
   .wrap {
-    max-width: 880px;
+    max-width: 1040px;
     margin: 0 auto;
-    padding: 40px 16px 56px;
+    padding: 16px 16px 16px;
   }
-  header { margin-bottom: 32px; }
+  header { margin-bottom: 4px; }
+  .head-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+  }
+  .title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; }
   h1 {
     margin: 0;
-    font-size: 1.75rem;
+    font-size: 1.45rem;
     letter-spacing: 0.01em;
   }
-  .lead { margin: 4px 0 0; color: var(--muted); }
+  .lead { margin: 0; color: var(--muted); font-size: 0.9rem; }
+  .controls { display: flex; gap: 6px; flex-wrap: wrap; }
   h2 {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--muted);
     font-weight: 600;
-    margin: 32px 0 12px;
+    margin: 12px 0 5px;
+  }
+  /* 4つのグループを広い画面では2列に並べ、スクロールせずに全体を見られるようにする */
+  main { display: grid; grid-template-columns: 1fr; column-gap: 20px; }
+  @media (min-width: 720px) {
+    main { grid-template-columns: 1fr 1fr; }
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 12px;
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
   a.tool {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 16px 18px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "name tags" "desc desc";
+    align-items: center;
+    gap: 1px 10px;
+    padding: 7px 14px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -104,14 +120,15 @@
   a.tool:hover { border-color: var(--accent); transform: translateY(-1px); }
   a.tool:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .tool-name {
+    grid-area: name;
     display: flex;
     align-items: center;
     gap: 8px;
     font-weight: 700;
-    font-size: 1.02rem;
+    font-size: 0.98rem;
   }
-  .tool-name .icon { font-size: 1.2rem; }
-  .tool-desc { margin: 0; color: var(--muted); font-size: 0.9rem; }
+  .tool-name .icon { font-size: 1.1rem; }
+  .tool-desc { grid-area: desc; margin: 0; color: var(--muted); font-size: 0.85rem; line-height: 1.45; }
   .tag {
     align-self: flex-start;
     font-size: 0.75rem;
@@ -123,11 +140,11 @@
   }
   a.tool.local { border-style: dashed; }
   a.tool.local:hover { border-color: var(--local); }
-  .legend { margin: 16px 0 0; color: var(--muted); font-size: 0.85rem; display: grid; gap: 6px; }
-  .legend-row { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
-  .legend-label { font-weight: 600; min-width: 5.5em; }
-  .legend .tag { margin-right: 4px; }
-  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .legend { margin: 8px 0 0; color: var(--muted); font-size: 0.8rem; display: flex; flex-wrap: wrap; gap: 2px 18px; line-height: 1.5; }
+  .legend-row { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: center; }
+  .legend-label { font-weight: 600; }
+  .legend .tag { margin-right: 3px; }
+  .tags { grid-area: tags; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
   .tags .tag { align-self: auto; }
   .tag.pc { background: var(--local-soft); color: var(--local); }
   /* 置き場所の札は枠線だけにして、開ける場所の札と見分ける */
@@ -136,23 +153,16 @@
   .tag.secure { background: var(--secure-soft); color: var(--secure); }
   body.hide-pc [data-scope~="pc"] { display: none; }
   body.hide-pc .group-empty { display: none; }
-  .note { margin: 10px 0 0; color: var(--muted); font-size: 0.85rem; }
+  .note { grid-column: 1 / -1; margin: 14px 0 0; color: var(--muted); font-size: 0.8rem; line-height: 1.5; }
   .note a { color: var(--accent); }
-  footer {
-    margin-top: 48px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
   .theme-btn {
     background: var(--surface);
     color: var(--muted);
     border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 4px 14px;
+    padding: 2px 12px;
     font: inherit;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
   }
 </style>
@@ -160,8 +170,16 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>My Portal</h1>
-    <p class="lead">出張・マイル・お金・調べものの入口</p>
+    <div class="head-row">
+      <div class="title">
+        <h1>My Portal</h1>
+        <p class="lead">出張・マイル・お金・調べものの入口</p>
+      </div>
+      <div class="controls">
+        <button type="button" class="theme-btn" id="pcBtn" aria-pressed="false">PCのみを隠す: いいえ</button>
+        <button type="button" class="theme-btn" id="themeBtn">表示: 自動</button>
+      </div>
+    </div>
     <div class="legend" aria-label="札の見方">
       <p class="legend-row"><span class="legend-label">開ける場所</span>
         <span><span class="tag">どこでも</span>どの端末でも開く公開ページ</span>
@@ -239,21 +257,21 @@
       </div>
     </section>
 
-    <p class="note">PCのみのものは、自宅のPCでサーバーが動いているときだけ開けます。リンク先を知っていても、ほかの端末からは開けません。スマートフォンやほかのPCでは、「PCのみを隠す」で見えなくできます。GitHub非公開のものは <a href="https://github.com/tkshmrkm/inspection-private" rel="noopener noreferrer">非公開リポジトリ（要ログイン）</a> で管理しています。暗号化していないものは、PCの中ではそのまま読めるファイルです。</p>
+    <p class="note">PCのみのものは、自宅のPCでサーバーが動いているときだけ開けます。リンク先を知っていても、ほかの端末からは開けません。スマートフォンなどのタッチ端末では最初から隠しています。「PCのみを隠す」で切り替えられ、選んだ表示はその端末で次回も使います。GitHub非公開のものは <a href="https://github.com/tkshmrkm/inspection-private" rel="noopener noreferrer">非公開リポジトリ（要ログイン）</a> で管理しています。暗号化していないものは、PCの中ではそのまま読めるファイルです。</p>
   </main>
 
-  <footer>
-    <button type="button" class="theme-btn" id="pcBtn" aria-pressed="false">PCのみを隠す: いいえ</button>
-    <button type="button" class="theme-btn" id="themeBtn">表示: 自動</button>
-  </footer>
 </div>
 <script>
   // PCのみのカードを隠す（スマートフォンやほかのPCで、開けないものを見えなくする）
   (function () {
     const KEY = 'flightportal-hide-pc';
     const btn = document.getElementById('pcBtn');
-    let hide = false;
-    try { hide = localStorage.getItem(KEY) === '1'; } catch (e) { /* 既定のまま */ }
+    // 既定: スマートフォンなどタッチ端末では隠す。ボタンで選んだ値があればそれを優先する
+    let hide = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    try {
+      const saved = localStorage.getItem(KEY);
+      if (saved === '1' || saved === '0') hide = saved === '1';
+    } catch (e) { /* 既定のまま */ }
     function apply() {
       document.body.classList.toggle('hide-pc', hide);
       btn.textContent = 'PCのみを隠す: ' + (hide ? 'はい' : 'いいえ');
