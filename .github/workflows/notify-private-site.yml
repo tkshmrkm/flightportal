@@ -1,0 +1,21 @@
+# main に push されたら、非公開サイト（private.mrkn55.com）の配備を inspection-private に頼む。
+# 配備そのものは inspection-private の deploy.yml が行う。このリポジトリの HEAD が入口（/）に入る。
+# 必要な秘密の設定：PRIVATE_SITE_TOKEN（inspection-private に合図を送れる GitHub のトークン）
+name: Notify private site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask inspection-private to deploy
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SITE_TOKEN }}
+        run: gh api repos/tkshmrkm/inspection-private/dispatches -f event_type=deploy
