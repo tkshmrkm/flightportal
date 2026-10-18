@@ -1617,12 +1617,15 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ===== Cloudflare Worker =====
-    // Worker URLは公開情報なので固定する。APIキーだけを各ブラウザーのlocalStorageに保存する。
-    const API_URL = 'https://ancient-flower-7846.mrkn55.workers.dev';
+    // private.mrkn55.com で開いたときは、同じ住所の /api/lsp に保存する。入口のCloudflareログイン（Access）が鍵の代わりで、APIキーは使わない。
+    // それ以外（公開版）は従来どおり、Worker URLを固定し、APIキーだけを各ブラウザーのlocalStorageに保存する。
+    const VIA_LOGIN = location.hostname === 'private.mrkn55.com';
+    const API_URL = VIA_LOGIN ? '/api/lsp' : 'https://ancient-flower-7846.mrkn55.workers.dev';
     const cloudStatus = (message) => {
         document.getElementById('cloud-status').textContent = message;
     };
     const cloudConfig = () => {
+        if (VIA_LOGIN) return '';
         const key = (localStorage.getItem('lsp_api_key') || '').trim();
         if (!key) throw new Error('クラウド設定でAPIキーを入力してください');
         return key;
@@ -1631,8 +1634,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const key = cloudConfig();
         const response = await fetch(API_URL, {
             ...options,
-            headers: { ...options.headers, 'X-Api-Key': key }
+            // ログインが切れていると、Accessはログイン画面へ転送する。転送先は別の住所で読めないので、追わずに止める
+            ...(VIA_LOGIN ? { redirect: 'manual', credentials: 'same-origin' } : {}),
+            headers: key ? { ...options.headers, 'X-Api-Key': key } : { ...options.headers }
         });
+        if (VIA_LOGIN && (response.type === 'opaqueredirect' || response.status === 401)) {
+            throw new Error('ログインの有効期限が切れています。ページを再読み込みしてログインし直してください');
+        }
         if (!response.ok) {
             if (response.status === 401 || response.status === 403) document.getElementById('cloud-settings').open = true;
             const reasons = {
@@ -1656,8 +1664,20 @@ document.addEventListener('DOMContentLoaded', () => {
             : 'APIキーは未設定です。下の入力欄に入力してください。';
         document.getElementById('cloud-key').required = !saved;
     };
-    refreshCloudSetup();
-    document.getElementById('cloud-settings').open = !localStorage.getItem('lsp_api_key');
+    if (VIA_LOGIN) {
+        // キーの入力欄は使わない。再保存のボタンだけ残す
+        const form = document.getElementById('cloud-settings-form');
+        [...form.querySelectorAll('label'), document.getElementById('cloud-connect')].forEach((el) => { el.hidden = true; });
+        const panel = document.getElementById('cloud-settings');
+        panel.querySelector('summary').textContent = 'クラウド保存';
+        panel.querySelectorAll(':scope > p').forEach((el) => { el.hidden = true; });
+        document.getElementById('cloud-key-state').hidden = false;
+        document.getElementById('cloud-key-state').textContent = 'このページではCloudflareのログインで保存先（private.mrkn55.com/api/lsp）に接続します。APIキーは不要です。';
+        panel.open = false;
+    } else {
+        refreshCloudSetup();
+        document.getElementById('cloud-settings').open = !localStorage.getItem('lsp_api_key');
+    }
     document.getElementById('cloud-key-visible').addEventListener('change', (event) => {
         document.getElementById('cloud-key').type = event.target.checked ? 'text' : 'password';
     });
