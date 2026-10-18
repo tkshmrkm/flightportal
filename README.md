@@ -35,6 +35,6 @@ https://private.mrkn55.com/ （2026-10-18〜。Cloudflare Accessのログイン�
 1. `git pull` で最新にする(ほかの端末やセッションで更新していることがある)。
 2. 編集する。ポータルにカードを足すときは、PCのみのものに `data-scope="pc"` と「PCのみ」の札を付け、置き場所の札(「GitHub非公開」か「Gitなし」)も付ける。暗号化して保存するものには「🔒 暗号化」、`private.mrkn55.com` のものには「🔑 ログイン」も付ける。
 3. 差分を見て、上の「置かないもの」が入っていないか確かめる。
-4. commit して push する。push すると `private.mrkn55.com` にも自動で配備される(`.github/workflows/notify-private-site.yml` が inspection-private に合図し、そちらの GitHub Actions が組み立てて配備する。数分かかる)。公開版の GitHub Pages にも反映される。
+4. commit して push する。push すると `private.mrkn55.com` にも自動で配備される(`.github/workflows/notify-private-site.yml` が private-site に合図し、そちらの GitHub Actions が組み立てて配備する。数分かかる)。公開版の GitHub Pages にも反映される。
 
 PCのみのページの中身は、このリポジトリではなく自宅PCのフォルダで直接編集する。
